@@ -1,0 +1,17 @@
+{
+    "button_save": "保存",
+    "button_cancel": "取消",
+    "setting_panel_title": "双击文档树（文档树增强）插件设置",
+
+
+    "setting_dblclickShowSubDoc_name": "启用",
+    "setting_dblclickShowSubDoc_desp": "启用双击展开子层级功能",
+    "setting_dblclickDelay_name": "双击判定时段",
+    "setting_dblclickDelay_desp": "单位：毫秒；注意，小于150毫秒几乎无法判定为双击",
+    "setting_disableChangeIcon_name": "禁用文档树切换图标",
+    "setting_disableChangeIcon_desp": "需要先启用双击功能",
+    
+    
+    "setting_experimental": "（⚠实验性功能，不稳定，可能随时被移除）",
+    "error_initFailed": "双击文档树（文档树增强）插件初始化失败，如果可以，请向开发者反馈此问题"
+}

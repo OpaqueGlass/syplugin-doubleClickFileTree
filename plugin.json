@@ -1,0 +1,30 @@
+{
+  "name": "syplugin-doubleClickFileTree",
+  "author": "OpaqueGlass",
+  "url": "https://github.com/OpaqueGlass/syplugin-doubleClickFileTree",
+  "version": "0.1.0",
+  "displayName": {
+    "default": "doubleClickFileTree",
+    "zh_CN": "文档树双击展开",
+    "en_US": "doubleClickFileTree"
+  },
+  "description": {
+    "default": "doubleClickFileTree",
+    "zh_CN": "文档树双击展开子文档",
+    "en_US": "doubleClickFileTree"
+  },
+  "readme": {
+    "default": "README.md",
+    "zh_CN": "README_zh_CN.md",
+    "en_US": "README.md"
+  },
+  "i18n": [
+    "zh_CN",
+    "en_US"
+  ],
+  "funding": {
+    "custom": [
+      "https://wj.qq.com/s2/12395364/b69f/"
+    ]
+  }
+}

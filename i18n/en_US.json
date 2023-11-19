@@ -1,0 +1,17 @@
+{
+  "button_save": "Save",
+  "button_cancel": "Cancel",
+  "setting_panel_title": "Plugin Settings: ",
+  
+  
+  "setting_dblclickShowSubDoc_name": "启用",
+  "setting_dblclickShowSubDoc_desp": "启用双击展开子层级功能；启用后将插件将代为处理文档树单击、双击事件，如出现文档树打不开文档、不显示菜单等问题，请停用插件并向开发者反馈",
+  "setting_dblclickDelay_name": "双击判定时段",
+  "setting_dblclickDelay_desp": "单位：毫秒；注意，小于150毫秒几乎无法判定为双击",
+  "setting_disableChangeIcon_name": "禁用文档树切换图标",
+  "setting_disableChangeIcon_desp": "需要先启用双击功能",
+
+  
+  "setting_experimental": "(Experimental Feature. UNSTABLE. May be removed at any time) ",
+  "error_initFailed": "Double-click-file-tree (File tree enhance) Plugin initialization failed, please report this issue to developer at your convenience"
+}
