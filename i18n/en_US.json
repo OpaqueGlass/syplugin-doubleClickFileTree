@@ -10,6 +10,8 @@
   "setting_dblclickDelay_desp": "单位：毫秒；注意，小于150毫秒几乎无法判定为双击",
   "setting_disableChangeIcon_name": "禁用文档树切换图标",
   "setting_disableChangeIcon_desp": "需要先启用双击功能",
+  "setting_unfoldSubDocsWhileOpenParent_name": "打开父文档时展开子文档",
+  "setting_unfoldSubDocsWhileOpenParent_desp": "需要先启用双击功能",
 
   
   "setting_experimental": "(Experimental Feature. UNSTABLE. May be removed at any time) ",

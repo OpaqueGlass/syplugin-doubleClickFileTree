@@ -53,11 +53,13 @@ let g_setting = {
     dblclickShowSubDoc: null,
     dblclickDelay: null,
     disableChangeIcon: null,
+    unfoldSubDocsWhileOpenParent: null,
 };
 let g_setting_default = {
     dblclickShowSubDoc: true,
     dblclickDelay: 200,
     disableChangeIcon: true,
+    unfoldSubDocsWhileOpenParent: false,
 };
 /**
  * Plugin类
@@ -155,6 +157,7 @@ class DoubleClickFileTreePlugin extends siyuan.Plugin {
             new SettingProperty("dblclickShowSubDoc", "SWITCH", null),
             new SettingProperty("dblclickDelay", "NUMBER", [50, 1200]),
             new SettingProperty("disableChangeIcon", "SWITCH", null),
+            new SettingProperty("unfoldSubDocsWhileOpenParent", "SWITCH", null),
         ]);
 
         hello.appendChild(settingForm);
@@ -163,7 +166,7 @@ class DoubleClickFileTreePlugin extends siyuan.Plugin {
 
     eventBusInnerHandler() {
 
-        if (g_setting.dblclickShowSubDoc) {
+        if (true || g_setting.dblclickShowSubDoc) {
             document.querySelector('.sy__file')?.addEventListener('click', clickFileTreeHandler, true);
         } else {
             document.querySelector('.sy__file')?.removeEventListener('click', clickFileTreeHandler, true);
@@ -284,13 +287,19 @@ function clickFileTreeHandler(event) {
         g_isRecentClicked = true;
         clearTimeout(g_recentClickCheckTimeout);
         const sourceElem = getSourceItemElement(event);
-        g_recentClickedId = sourceElem?.getAttribute("data-note-id");
+        g_recentClickedId = sourceElem?.getAttribute("data-node-id");
+        debugPush("点击的元素与事件", event, sourceElem, g_recentClickedId);
+        if (!isValidStr(g_recentClickedId) && sourceElem?.getAttribute("data-type") !== "navigation-root") {
+            debugPush("点击的元素不是文件，终止操作");
+            g_isRecentClicked = false;
+            return;
+        }
         g_recentClickCheckTimeout = setTimeout(()=>{
             debugPush("执行延时任务");
             g_isRecentClicked = false;
             singleClickHandler(event);
             g_recentClickedId = null;
-        }, g_setting.dblclickDelay);
+        }, g_setting.dblclickShowSubDoc ? g_setting.dblclickDelay : 0);
         event.preventDefault();
         event.stopPropagation();
         event.stopImmediatePropagation();
@@ -299,11 +308,12 @@ function clickFileTreeHandler(event) {
         debugPush("二次点击");
         clearTimeout(g_recentClickCheckTimeout);
         g_isRecentClicked = false;
-        doubleClickHandler(event);
-        g_recentClickedId = null;
-        event.preventDefault();
-        event.stopPropagation();
-        event.stopImmediatePropagation();
+        if (doubleClickHandler(event)) {
+            g_recentClickedId = null;
+            event.preventDefault();
+            event.stopPropagation();
+            event.stopImmediatePropagation();
+        }
     }    
 }
 
@@ -321,6 +331,14 @@ function singleClickHandler(event) {
             // 设定高亮
             document.querySelector(".sy__file .b3-list-item--focus")?.classList.remove("b3-list-item--focus");
             sourceElem.classList.add("b3-list-item--focus");
+            // 展开子层级
+            // 请注意：这里没有判定是否已经展开，如果已经展开，则会收起；先展开而后打开文档是为了保持文档具有焦点，看情况可能需要更改
+            if (g_setting.unfoldSubDocsWhileOpenParent) {
+                const b3ListItemToggle = sourceElem.querySelector('.b3-list-item__toggle');
+                const title = sourceElem.querySelector('.b3-list-item__text');
+                b3ListItemToggle.click();
+            }
+            // 打开文档
             siyuan.openTab({
                 app: g_app,
                 doc: {
@@ -336,18 +354,24 @@ function singleClickHandler(event) {
         b3ListItemToggle.click();
         debugPush("展开笔记本层级成功");
     }
+    
 }
 
 function doubleClickHandler(event) {
     const sourceElem = getSourceItemElement(event);
-    const targetNodeId = sourceElem.getAttribute("data-note-id");
+    if (sourceElem == null) {
+        return false;
+    }
+    const targetNodeId = sourceElem.getAttribute("data-node-id");
     debugPush("双击targetNodeId, g_id", targetNodeId, g_recentClickedId);
     if (sourceElem && g_recentClickedId === targetNodeId) {
         const b3ListItemToggle = sourceElem.querySelector('.b3-list-item__toggle');
         const title = sourceElem.querySelector('.b3-list-item__text');
         b3ListItemToggle.click();
         debugPush("展开文件层级成功");
+        return true;
     }
+    return false;
 }
 
 function getSourceItemElement(event) {
