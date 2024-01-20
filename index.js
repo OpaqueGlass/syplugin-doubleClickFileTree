@@ -45,7 +45,7 @@ let g_writeStorage;
 let g_isMobile = false;
 let g_mutex = 0;
 let g_app;
-let g_isRecentClicked = false; // 判定是否近期点击过文档树
+let g_isRecentClicked = 0; // 判定是否近期点击过文档树，改为存放时间戳，当点击任务被消费后，重置为0
 let g_recentClickedId = null;
 let g_recentClickCheckTimeout = null; // 等待重新判定timeout
 let g_delayTimeMs = 300; // 判定延迟300ms
@@ -281,22 +281,24 @@ function clickFileTreeHandler(event) {
     }
     debugPush("event", event);
     
+    let timeGap = new Date().getTime() - g_isRecentClicked;
+
     // TODO:判断是否跟随快捷键按下
-    if (!g_isRecentClicked) {
+    if (timeGap > g_setting.dblclickDelay) {
         debugPush("首次点击");
-        g_isRecentClicked = true;
+        g_isRecentClicked = new Date().getTime();
         clearTimeout(g_recentClickCheckTimeout);
         const sourceElem = getSourceItemElement(event);
         g_recentClickedId = sourceElem?.getAttribute("data-node-id");
         debugPush("点击的元素与事件", event, sourceElem, g_recentClickedId);
         if (!isValidStr(g_recentClickedId) && sourceElem?.getAttribute("data-type") !== "navigation-root") {
             debugPush("点击的元素不是文件，终止操作");
-            g_isRecentClicked = false;
+            g_isRecentClicked = 0;
             return;
         }
         g_recentClickCheckTimeout = setTimeout(()=>{
             debugPush("执行延时任务");
-            g_isRecentClicked = false;
+            g_isRecentClicked = 0;
             singleClickHandler(event);
             g_recentClickedId = null;
         }, g_setting.dblclickShowSubDoc ? g_setting.dblclickDelay : 0);
@@ -307,7 +309,7 @@ function clickFileTreeHandler(event) {
     } else {
         debugPush("二次点击");
         clearTimeout(g_recentClickCheckTimeout);
-        g_isRecentClicked = false;
+        g_isRecentClicked = 0;
         if (doubleClickHandler(event)) {
             g_recentClickedId = null;
             event.preventDefault();
