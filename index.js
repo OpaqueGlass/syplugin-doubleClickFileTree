@@ -279,6 +279,10 @@ function clickFileTreeHandler(event) {
         debugPush("点击的是展开按钮或svg图标，终止操作");
         return;
     }
+    if (document.getElementById("commonMenu") && !document.getElementById("commonMenu").classList.contains("fn__none")) {
+        debugPush("当前存在commonMene右键菜单，终止操作");
+        return;
+    }
     debugPush("event", event);
     
     let timeGap = new Date().getTime() - g_isRecentClicked;
