@@ -62,7 +62,7 @@ let g_setting = {
 let g_setting_default = {
     dblclickShowSubDoc: true,
     revertBehavior: false,
-    dblclickDelay: 225,
+    dblclickDelay: 200,
     disableChangeIcon: true,
     sameToOutline: false,
     extendClickArea: false,
@@ -218,7 +218,7 @@ class DoubleClickFileTreePlugin extends siyuan.Plugin {
 // debug push
 let g_DEBUG = 2;
 const g_NAME = "fte";
-const g_FULLNAME = "双击文档树（文档树扩展）";
+const g_FULLNAME = "双击文档树";
 
 /*
 LEVEL 0 忽略所有
@@ -241,25 +241,33 @@ function isDebugMode() {
 
 function debugPush(str, ...args) {
     if (commonPushCheck() >= 5) {
-        console.debug(`${g_FULLNAME}[D] ${new Date().toLocaleString()} ${str}`, ...args);
+        const date = new Date();
+        const dateStr = `${date.toLocaleString()}.${String(date.getMilliseconds()).padStart(3, '0')}`;
+        console.debug(`${g_FULLNAME}[D] ${dateStr} ${str}`, ...args);
     }
 }
 
 function logPush(str, ...args) {
     if (commonPushCheck() >= 4) {
-        console.log(`${g_FULLNAME}[L] ${new Date().toLocaleString()} ${str}`, ...args);
+        const date = new Date();
+        const dateStr = `${date.toLocaleString()}.${String(date.getMilliseconds()).padStart(3, '0')}`;
+        console.log(`${g_FULLNAME}[L] ${dateStr} ${str}`, ...args);
     }
 }
 
 function errorPush(str, ... args) {
     if (commonPushCheck() >= 1) {
-        console.error(`${g_FULLNAME}[E] ${new Date().toLocaleString()} ${str}`, ...args);
+        const date = new Date();
+        const dateStr = `${date.toLocaleString()}.${String(date.getMilliseconds()).padStart(3, '0')}`;
+        console.error(`${g_FULLNAME}[E] ${dateStr} ${str}`, ...args);
     }
 }
 
 function warnPush(str, ... args) {
+    const date = new Date();
+        const dateStr = `${date.toLocaleString()}.${String(date.getMilliseconds()).padStart(3, '0')}`;
     if (commonPushCheck() >= 2) {
-        console.warn(`${g_FULLNAME}[W] ${new Date().toLocaleString()} ${str}`, ...args);
+        console.warn(`${g_FULLNAME}[W] ${dateStr} ${str}`, ...args);
     }
 }
 
@@ -320,12 +328,24 @@ function clickFileTreeHandler(event) {
         return;
     }
     if (event.srcElement.classList.contains("b3-list-item__toggle") || ["svg", "use"].includes(event.srcElement.tagName)) {
+        const sourceElem = getSourceSpanElement(event.srcElement);
+        if (sourceElem == null) {
+            debugPush("sourceElem未找到，未知情况，不处理", event.srcElement);
+            return;
+        }
+        if (["more-file", "more-root", "new"].includes(sourceElem.getAttribute("data-type"))) {
+            debugPush("点击的是更多按钮或新建按钮，终止操作");
+            return;
+        }
+        // 理论上剩下的情况就是toggle
+        if (!sourceElem.classList.contains("b3-list-item__toggle")) {
+            debugPush("点击的还不是展开按钮，不知道什么情况，终止操作", event.srcElement, sourceElem);
+        }
         if (!g_setting.extendClickArea || g_isPluginClickToggle) {
-            debugPush("点击的是展开按钮或svg图标，终止操作");
+            debugPush("点击的是展开按钮，且不允许响应展开");
             g_isPluginClickToggle = false;
             return;
         }
-        
     }
     if (document.getElementById("commonMenu") && !document.getElementById("commonMenu").classList.contains("fn__none")) {
         debugPush("当前存在commonMene右键菜单，终止操作");
@@ -351,8 +371,6 @@ function clickFileTreeHandler(event) {
         const b3ListItemToggle = sourceElem.querySelector('.b3-list-item__toggle');
         const toggleNotExist = b3ListItemToggle == null ? true : b3ListItemToggle.classList.contains("fn__hidden");
         let delay = g_setting.dblclickShowSubDoc ? g_setting.dblclickDelay : 0;
-        
-        debugPush("b3ListToggleExist", b3ListItemToggle, g_setting.revertBehavior, delay, toggleNotExist);
         // 如果设置为单击打开文档，且并没有子文档展开按钮，那么不存在双击行为，置零
         if (toggleNotExist && !g_setting.revertBehavior) {
             delay = 0;
@@ -552,6 +570,24 @@ function getSourceItemElement(event) {
             break;
         } else if (elemDataType === "navigation-root") {
             isNoteBook = true;
+            isFound = true;
+            break;
+        }
+        ftItemElem = ftItemElem.parentNode;
+    }
+    return isFound ? ftItemElem : null;
+}
+
+function getSourceSpanElement(elem) {
+    // 回溯查找当前位置
+    let ftItemElem = elem;
+    let isFound = false;
+    for (let i = 0; i < 4 && ftItemElem; i++) {
+        if (ftItemElem == null) {
+            break;
+        }
+        debugPush("getSourceSpan", ftItemElem, ftItemElem.tagName, ftItemElem.tagName?.toLowerCase() == "span");
+        if (ftItemElem.tagName?.toLowerCase() == "span") {
             isFound = true;
             break;
         }

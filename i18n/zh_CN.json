@@ -7,7 +7,7 @@
     "setting_dblclickShowSubDoc_name": "启用双击功能",
     "setting_dblclickShowSubDoc_desp": "请注意，无论是否启用，插件将接管鼠标左键点击文档树中文档item的事件，这可能与其他插件或代码片段不兼容",
     "setting_dblclickDelay_name": "双击判定时段",
-    "setting_dblclickDelay_desp": "单位：（大概是）毫秒；注意，小于150几乎无法判定为双击",
+    "setting_dblclickDelay_desp": "单位：（大概是）毫秒；注意，小于150几乎无法判定为双击；如果认为单击响应过慢，可适当调小；如果经常无法双击，可适当调大",
     "setting_revertBehavior_name": "交换逻辑",
     "setting_revertBehavior_desp": "在本项禁用时，单击打开文档、双击展开子文档；在本项启用时，单击展开子文档、双击打开文档；在无子文档时，点击将优先打开文档；",
     "setting_disableChangeIcon_name": "禁用文档树切换图标",
