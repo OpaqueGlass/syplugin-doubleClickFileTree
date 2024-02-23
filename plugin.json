@@ -2,16 +2,16 @@
   "name": "syplugin-doubleClickFileTree",
   "author": "OpaqueGlass",
   "url": "https://github.com/OpaqueGlass/syplugin-doubleClickFileTree",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "displayName": {
-    "default": "doubleClickFileTree",
-    "zh_CN": "文档树双击展开",
-    "en_US": "doubleClickFileTree"
+    "default": "double click file tree",
+    "zh_CN": "双击文档树",
+    "en_US": "double click file tree"
   },
   "description": {
-    "default": "doubleClickFileTree",
-    "zh_CN": "文档树双击展开子文档",
-    "en_US": "doubleClickFileTree"
+    "default": "Double-click to expand the next level or double-click to open the document.",
+    "zh_CN": "双击展开下一层级，或双击打开文档",
+    "en_US": "Double-click to expand the next level or double-click to open the document."
   },
   "readme": {
     "default": "README.md",

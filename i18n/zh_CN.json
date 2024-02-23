@@ -1,18 +1,29 @@
 {
     "button_save": "保存",
     "button_cancel": "取消",
-    "setting_panel_title": "双击文档树（文档树增强）插件设置",
+    "setting_panel_title": "双击文档树插件设置",
 
 
-    "setting_dblclickShowSubDoc_name": "启用双击展开子文档功能",
+    "setting_dblclickShowSubDoc_name": "启用双击功能",
     "setting_dblclickShowSubDoc_desp": "请注意，无论是否启用，插件将接管鼠标左键点击文档树中文档item的事件，这可能与其他插件或代码片段不兼容",
     "setting_dblclickDelay_name": "双击判定时段",
-    "setting_dblclickDelay_desp": "单位：毫秒；注意，小于150毫秒几乎无法判定为双击",
+    "setting_dblclickDelay_desp": "单位：（大概是）毫秒；注意，小于150几乎无法判定为双击",
+    "setting_revertBehavior_name": "交换逻辑",
+    "setting_revertBehavior_desp": "在本项禁用时，单击打开文档、双击展开子文档；在本项启用时，单击展开子文档、双击打开文档；在无子文档时，点击将优先打开文档；",
     "setting_disableChangeIcon_name": "禁用文档树切换图标",
-    "setting_disableChangeIcon_desp": "启用本功能后，点击图标将打开文档",
+    "setting_disableChangeIcon_desp": "启用本功能后，点击图标将视为点击文档标题，接受插件单击/双击管理",
+    "setting_extendClickArea_name": "🧪扩大响应区域",
+    "setting_extendClickArea_desp": "启用本功能后，点击`>`将视为点击文档标题，接受插件单击/双击管理，而不一定是展开子文档",
     "setting_unfoldSubDocsWhileOpenParent_name": "打开父文档时展开子文档",
     "setting_unfoldSubDocsWhileOpenParent_desp": "请注意，在目前的实现中，如果已经展开，则将会收起；将先展开后打开文档，但仍然存在无法将焦点对在文档上的问题",
+    "setting_sameToOutline_name": "🧪大纲面板也一样",
+    "setting_sameToOutline_desp": "启用本功能后，上述逻辑将应用于大纲面板；对于动态加载的文档，存在 启用后大纲跳转卡顿、跳转后滚动卡顿 的问题，建议禁用",
+    "setting_openToTop_name": "🧪打开文档后不跳转",
+    "setting_openToTop_desp": "启用本功能后，打开文档将不再跳转到上次编辑位置",
+
+    "setting_aboutAuthor_name": "关于",
+    "setting_aboutAuthor_desp": "作者：<a target='_blank' href='https://github.com/OpaqueGlass'>OpaqueGlass</a>；<br/>问题反馈&赞助支持：<a target='_blank' href='https://github.com/OpaqueGlass/syplugin-doubleClickFileTree'>github</a> 或 <a target='_blank' href='https://wj.qq.com/s2/12395364/b69f/'>填写问卷</a>；<br/>插件基于<a target='_blank' href='https://www.gnu.org/licenses/agpl-3.0.html'>AGPLv3</a>授权使用；",
     
-    "setting_experimental": "（⚠实验性功能，不稳定，可能随时被移除）",
+    "setting_experimental": "（⚠实验性功能，不稳定，可能随时被移除；如有问题请反馈）",
     "error_initFailed": "双击文档树（文档树增强）插件初始化失败，如果可以，请向开发者反馈此问题"
 }

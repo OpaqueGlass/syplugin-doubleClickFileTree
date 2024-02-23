@@ -35,7 +35,7 @@ const CONSTANTS = {
     ICON_ALL: 2,
     ICON_NONE: 0,
     ICON_CUSTOM_ONLY: 1,
-    PLUGIN_NAME: "og_hierachy_navigate",
+    PLUGIN_NAME: "og_double_click_file_tree",
     SAVE_TIMEOUT: 900,
     POP_NONE: 0,
     POP_LIMIT: 1,
@@ -48,18 +48,26 @@ let g_app;
 let g_isRecentClicked = 0; // 判定是否近期点击过文档树，改为存放时间戳，当点击任务被消费后，重置为0
 let g_recentClickedId = null;
 let g_recentClickCheckTimeout = null; // 等待重新判定timeout
-let g_delayTimeMs = 300; // 判定延迟300ms
+let g_isPluginClickToggle = false;
 let g_setting = {
     dblclickShowSubDoc: null,
     dblclickDelay: null,
     disableChangeIcon: null,
+    revertBehavior: null,
+    sameToOutline: null,
+    extendClickArea: null,
     unfoldSubDocsWhileOpenParent: null,
+    openToTop: null,
 };
 let g_setting_default = {
     dblclickShowSubDoc: true,
-    dblclickDelay: 200,
+    revertBehavior: false,
+    dblclickDelay: 225,
     disableChangeIcon: true,
+    sameToOutline: false,
+    extendClickArea: false,
     unfoldSubDocsWhileOpenParent: false,
+    openToTop: false,
 };
 /**
  * Plugin类
@@ -102,7 +110,7 @@ class DoubleClickFileTreePlugin extends siyuan.Plugin {
     onunload() {
         this.el && this.el.remove();
         removeStyle();
-
+        this.eventBusInnerHandler(true);
         // 善后
     }
     // TODO: 重写载入设置
@@ -156,20 +164,51 @@ class DoubleClickFileTreePlugin extends siyuan.Plugin {
             // 基础设定
             new SettingProperty("dblclickShowSubDoc", "SWITCH", null),
             new SettingProperty("dblclickDelay", "NUMBER", [50, 1200]),
+            new SettingProperty("revertBehavior", "SWITCH", null),
             new SettingProperty("disableChangeIcon", "SWITCH", null),
             new SettingProperty("unfoldSubDocsWhileOpenParent", "SWITCH", null),
+            new SettingProperty("extendClickArea", "SWITCH", null),
+            new SettingProperty("sameToOutline", "SWITCH", null),
+            new SettingProperty("openToTop", "SWITCH", null),
+            new SettingProperty("aboutAuthor", "HINT", null),
         ]);
 
         hello.appendChild(settingForm);
         settingDialog.element.querySelector(`#${CONSTANTS.PLUGIN_NAME}-form-content`).appendChild(hello);
     }
 
-    eventBusInnerHandler() {
+    eventBusInnerHandler(removeMode = false) {
+        document.querySelector('.sy__file')?.addEventListener('click', clickFileTreeHandler, true);
 
-        if (true || g_setting.dblclickShowSubDoc) {
-            document.querySelector('.sy__file')?.addEventListener('click', clickFileTreeHandler, true);
-        } else {
+        if (removeMode) {
             document.querySelector('.sy__file')?.removeEventListener('click', clickFileTreeHandler, true);
+        }
+        if (g_setting.sameToOutline) {
+            document.querySelectorAll('.sy__outline').forEach((elem)=>{
+                elem.removeEventListener('click', clickFileTreeHandler, true);
+                elem.addEventListener('click', clickFileTreeHandler, true);
+            })
+        }
+        if (!g_setting.sameToOutline || removeMode){
+            document.querySelectorAll('.sy__outline').forEach((elem)=>{
+                elem.removeEventListener('click', clickFileTreeHandler, true);
+            })
+        }
+        if (g_setting.sameToOutline) {
+            document.addEventListener('keydown', this.bindKeyDownEvent.bind(this));              
+        }
+        if (!g_setting.sameToOutline || removeMode) {
+            document.addEventListener('keydown', this.bindKeyDownEvent.bind(this));  
+        }
+    }
+    bindKeyDownEvent(event) {
+        // 判断是否按下了 Alt 键，并且同时按下了 O 键
+        if (isShortcutMatch(event, window.siyuan.config.keymap.editor.general.outline.custom ?? "⌥O")) {
+            // 在这里执行按下 Alt + O 键的逻辑
+            debugPush("按下ALt+O");
+            setTimeout(()=>{
+                this.eventBusInnerHandler(); 
+            }, 300);      
         }
     }
 }
@@ -262,6 +301,11 @@ function initRetry() {
     document.querySelector('.sy__file')?.addEventListener('click', clickFileTreeHandler, true);
 }
 
+/**
+ * 点击文档树事件处理
+ * @param {*} event 
+ * @returns 
+ */
 function clickFileTreeHandler(event) {
     if (event.button != 0) {
         debugPush('按下的按键不是右键，终止操作')
@@ -276,8 +320,12 @@ function clickFileTreeHandler(event) {
         return;
     }
     if (event.srcElement.classList.contains("b3-list-item__toggle") || ["svg", "use"].includes(event.srcElement.tagName)) {
-        debugPush("点击的是展开按钮或svg图标，终止操作");
-        return;
+        if (!g_setting.extendClickArea || g_isPluginClickToggle) {
+            debugPush("点击的是展开按钮或svg图标，终止操作");
+            g_isPluginClickToggle = false;
+            return;
+        }
+        
     }
     if (document.getElementById("commonMenu") && !document.getElementById("commonMenu").classList.contains("fn__none")) {
         debugPush("当前存在commonMene右键菜单，终止操作");
@@ -287,7 +335,6 @@ function clickFileTreeHandler(event) {
     
     let timeGap = new Date().getTime() - g_isRecentClicked;
 
-    // TODO:判断是否跟随快捷键按下
     if (timeGap > g_setting.dblclickDelay) {
         debugPush("首次点击");
         g_isRecentClicked = new Date().getTime();
@@ -295,9 +342,29 @@ function clickFileTreeHandler(event) {
         const sourceElem = getSourceItemElement(event);
         g_recentClickedId = sourceElem?.getAttribute("data-node-id");
         debugPush("点击的元素与事件", event, sourceElem, g_recentClickedId);
-        if (!isValidStr(g_recentClickedId) && sourceElem?.getAttribute("data-type") !== "navigation-root") {
+        if (!isValidStr(g_recentClickedId) && (sourceElem?.getAttribute("data-type") !== "navigation-root" || sourceElem?.getAttribute("data-type") !== "NodeHeading") ) {
             debugPush("点击的元素不是文件，终止操作");
             g_isRecentClicked = 0;
+            return;
+        }
+        // TODO: 或许可以通过判断箭头（不存在的话），直接跳到打开文档，而不等待
+        const b3ListItemToggle = sourceElem.querySelector('.b3-list-item__toggle');
+        const toggleNotExist = b3ListItemToggle == null ? true : b3ListItemToggle.classList.contains("fn__hidden");
+        let delay = g_setting.dblclickShowSubDoc ? g_setting.dblclickDelay : 0;
+        
+        debugPush("b3ListToggleExist", b3ListItemToggle, g_setting.revertBehavior, delay, toggleNotExist);
+        // 如果设置为单击打开文档，且并没有子文档展开按钮，那么不存在双击行为，置零
+        if (toggleNotExist && !g_setting.revertBehavior) {
+            delay = 0;
+            g_isRecentClicked = 0;
+        // 如果设置为单击展开，且并没有子文档展开按钮，那么不存在单击行为，直接打开
+        } else if (toggleNotExist && g_setting.revertBehavior) {
+            delay = 0;
+            g_isRecentClicked = 0;
+            singleClickOpenDocHandler(event);
+            event.preventDefault();
+            event.stopPropagation();
+            event.stopImmediatePropagation();
             return;
         }
         g_recentClickCheckTimeout = setTimeout(()=>{
@@ -305,7 +372,7 @@ function clickFileTreeHandler(event) {
             g_isRecentClicked = 0;
             singleClickHandler(event);
             g_recentClickedId = null;
-        }, g_setting.dblclickShowSubDoc ? g_setting.dblclickDelay : 0);
+        }, delay);
         event.preventDefault();
         event.stopPropagation();
         event.stopImmediatePropagation();
@@ -323,25 +390,129 @@ function clickFileTreeHandler(event) {
     }    
 }
 
+// TODO 这边需要实现交换逻辑
 function singleClickHandler(event) {
+    if (g_setting.revertBehavior) {
+        singleClickUnfoldHandler(event);
+    } else {
+        singleClickOpenDocHandler(event);
+    }
+}
+
+
+function singleClickOpenDocHandler(event) {
     const sourceElem = getSourceItemElement(event);
     if (sourceElem == null) {
         debugPush("sourceElem未找到");
         return;
     }
-    if (sourceElem && sourceElem.getAttribute("data-type") === "navigation-file") {
+    debugPush("由 单击打开 处理", sourceElem);
+    openDocByTreeItemElement(sourceElem);
+}
+
+function singleClickUnfoldHandler(event) {
+    const sourceElem = getSourceItemElement(event);
+    if (sourceElem == null) {
+        debugPush("sourceElem未找到");
+        return;
+    }
+    debugPush("由 单击展开 处理", sourceElem);
+    // 如果有展开，则展开
+    const b3ListItemToggle = sourceElem.querySelector('.b3-list-item__toggle');
+    if (b3ListItemToggle && !b3ListItemToggle.classList.contains("fn__hidden")) {
+        g_isPluginClickToggle = true;
+        b3ListItemToggle.click();
+        debugPush("展开层级成功");
+    } else {
+        // 否则打开文档
+        openDocByTreeItemElement(sourceElem);
+    }
+}
+
+function doubleClickHandler(event) {
+    if (g_setting.revertBehavior) {
+        return doubleClickOpenDocHandler(event);
+    } else {
+        return doubleClickUnfoldHandler(event);
+    }
+}
+
+function doubleClickUnfoldHandler(event) {
+    const sourceElem = getSourceItemElement(event);
+    if (sourceElem == null) {
+        return false;
+    }
+    debugPush("由 双击展开 处理", sourceElem);
+    const targetNodeId = sourceElem.getAttribute("data-node-id");
+    debugPush("双击targetNodeId, g_id", targetNodeId, g_recentClickedId);
+    if (sourceElem && g_recentClickedId === targetNodeId) {
+        const b3ListItemToggle = sourceElem.querySelector('.b3-list-item__toggle');
+        g_isPluginClickToggle = true;
+        b3ListItemToggle.click();
+        debugPush("展开文件层级成功");
+        return true;
+    }
+    return false;
+}
+
+function doubleClickOpenDocHandler(event) {
+    const sourceElem = getSourceItemElement(event);
+    if (sourceElem == null) {
+        debugPush("sourceElem未找到");
+        return;
+    }
+    debugPush("由 双击打开 处理", sourceElem);
+    const targetNodeId = sourceElem.getAttribute("data-node-id");
+    debugPush("双击targetNodeId, g_id", targetNodeId, g_recentClickedId);
+    if (sourceElem && g_recentClickedId === targetNodeId) {
+        return openDocByTreeItemElement(sourceElem);
+    }
+ 
+    return false;
+}
+
+function openDocByTreeItemElement(sourceElem) {
+    debugPush("souceElem打开文档/展开笔记本", sourceElem);
+    if (sourceElem == null) {
+        return false;
+    }
+    const FILE_TREE = 0, OUTLINE_TREE = 1, NOTEBOOK = 2;
+    let souceType = null;
+    switch (sourceElem.getAttribute("data-type")) {
+        case "navigation-file": {
+            souceType = FILE_TREE;
+            break;
+        }
+        case "NodeHeading": {
+            souceType = OUTLINE_TREE;
+            break;
+        }
+        case "navigation-root": {
+            souceType = NOTEBOOK;
+            break;
+        }
+        default: {
+            logPush("未能识别的souceElement类型");
+            return false;
+        }
+    }
+    if (souceType < NOTEBOOK) {
         const targetNodeId = sourceElem.getAttribute("data-node-id");
         debugPush("获取到的文件id", targetNodeId);
         if (isValidStr(targetNodeId)) {
             debugPush("打开文档", targetNodeId);
             // 设定高亮
-            document.querySelector(".sy__file .b3-list-item--focus")?.classList.remove("b3-list-item--focus");
+            if (souceType == OUTLINE_TREE) {
+                document.querySelector(".sy__outline .b3-list-item--focus")?.classList.remove("b3-list-item--focus");
+            } else {
+                document.querySelector(".sy__file .b3-list-item--focus")?.classList.remove("b3-list-item--focus");
+            }
             sourceElem.classList.add("b3-list-item--focus");
             // 展开子层级
             // 请注意：这里没有判定是否已经展开，如果已经展开，则会收起；先展开而后打开文档是为了保持文档具有焦点，看情况可能需要更改
             if (g_setting.unfoldSubDocsWhileOpenParent) {
                 const b3ListItemToggle = sourceElem.querySelector('.b3-list-item__toggle');
-                const title = sourceElem.querySelector('.b3-list-item__text');
+                g_isPluginClickToggle = true;
                 b3ListItemToggle.click();
             }
             // 打开文档
@@ -349,32 +520,18 @@ function singleClickHandler(event) {
                 app: g_app,
                 doc: {
                     id: targetNodeId,
+                    action: souceType == FILE_TREE && g_setting.openToTop ? ["cb-get-focus"] : ["cb-get-focus", "cb-get-scroll"]
                 }
             }).catch((err)=>{
                 errorPush("打开文档时发生错误", err);
             });
+            return true;
         }
-    } else if (sourceElem && sourceElem.getAttribute("data-type") === "navigation-root") {
+    } else if (souceType == NOTEBOOK) {
         const b3ListItemToggle = sourceElem.querySelector('.b3-list-item__toggle');
-        const title = sourceElem.querySelector('.b3-list-item__text');
+        g_isPluginClickToggle = true;
         b3ListItemToggle.click();
         debugPush("展开笔记本层级成功");
-    }
-    
-}
-
-function doubleClickHandler(event) {
-    const sourceElem = getSourceItemElement(event);
-    if (sourceElem == null) {
-        return false;
-    }
-    const targetNodeId = sourceElem.getAttribute("data-node-id");
-    debugPush("双击targetNodeId, g_id", targetNodeId, g_recentClickedId);
-    if (sourceElem && g_recentClickedId === targetNodeId) {
-        const b3ListItemToggle = sourceElem.querySelector('.b3-list-item__toggle');
-        const title = sourceElem.querySelector('.b3-list-item__text');
-        b3ListItemToggle.click();
-        debugPush("展开文件层级成功");
         return true;
     }
     return false;
@@ -390,7 +547,7 @@ function getSourceItemElement(event) {
         }
         // debugPush("getSource", ftItemElem);
         const elemDataType = ftItemElem.getAttribute("data-type");
-        if (elemDataType === "navigation-file") {
+        if (elemDataType === "navigation-file" || elemDataType === "NodeHeading") {
             isFound = true;
             break;
         } else if (elemDataType === "navigation-root") {
@@ -430,6 +587,17 @@ function removeStyle() {
 
 /* ************ API 相关 **************** */
 
+function isShortcutMatch(event, key) {
+    const shortcutKeys = key.split('');
+    return shortcutKeys.every(key => {
+      if (key === '⌥') return event.altKey;
+      if (key === '⇧') return event.shiftKey;
+      if (key === '⌘') return event.ctrlKey;
+    //   if (key === '') return event.metaKey;
+      return event.key.toUpperCase() === key.toUpperCase();
+    });
+}
+
 function getNotebooks() {
     let notebooks = window.top.siyuan.notebooks;
     return notebooks;
@@ -454,88 +622,6 @@ function getFocusedBlockId() {
     return focusedBlock.dataset.nodeId;
 }
 
-/**
- * 插入块（返回值有删减）
- * @param {string} text 文本
- * @param {string} blockid 指定的块
- * @param {string} textType 插入的文本类型，"markdown" or "dom"
- * @param {string} addType 插入到哪里？默认插入为指定块之后，NEXT 为插入到指定块之前， PARENT 为插入为指定块的子块
- * @return 对象，为response.data[0].doOperations[0]的值，返回码为-1时也返回null
- */
-async function insertBlockAPI(text, blockid, addType = "previousID", textType = "markdown", ){
-    let url = "/api/block/insertBlock";
-    let data = {dataType: textType, data: text};
-    switch (addType) {
-        case "parentID":
-        case "PARENT":
-        case "parentId": {
-            data["parentID"] = blockid;
-            break;
-        }
-        case "nextID":
-        case "NEXT":
-        case "nextId": {
-            data["nextID"] = blockid;
-            break;
-        }
-        case "previousID":
-        case "PREVIOUS":
-        case "previousId": 
-        default: {
-            data["previousID"] = blockid;
-            break;
-        }
-    }
-    let response = await request(url, data);
-    try{
-        if (response.code == 0 && response.data != null && isValidStr(response.data[0].doOperations[0].id)){
-            return response.data[0].doOperations[0];
-        }
-        if (response.code == -1){
-            console.warn("插入块失败", response.msg);
-            return null;
-        }
-    }catch(err){
-        console.error(err);
-        console.warn(response.msg);
-    }
-    return null;
-
-}
-
-/**
- * 在html中显示文档icon
- * @param {*} iconString files[x].icon
- * @param {*} hasChild 
- * @returns 
- */
-function getEmojiHtmlStr(iconString, hasChild) {
-    if (g_setting.icon == CONSTANTS.ICON_NONE) return g_setting.linkDivider;
-    // 无emoji的处理
-    if ((iconString == undefined || iconString == null ||iconString == "") && g_setting.icon == CONSTANTS.ICON_ALL) return hasChild ? "📑" : "📄";//无icon默认值
-    if ((iconString == undefined || iconString == null ||iconString == "") && g_setting.icon == CONSTANTS.ICON_CUSTOM_ONLY) return g_setting.linkDivider;
-    let result = iconString;
-    // emoji地址判断逻辑为出现.，但请注意之后的补全
-    if (iconString.indexOf(".") != -1) {
-        result = `<img class="iconpic" style="width: ${g_setting.fontSize}px" src="/emojis/${iconString}"/>`;
-    } else {
-        result = `<span class="emojitext">${emojiIconHandler(iconString, hasChild)}</span>`;
-    }
-    return result;
-}
-let emojiIconHandler = function (iconString, hasChild = false) {
-    //确定是emojiIcon 再调用，printer自己加判断
-    try {
-        let result = "";
-        iconString.split("-").forEach(element => {
-            result += String.fromCodePoint("0x" + element);
-        });
-        return result;
-    } catch (err) {
-        console.error("emoji处理时发生错误", iconString, err);
-        return hasChild ? "📑" : "📄";
-    }
-}
 
 async function request(url, data) {
     let resData = null;
@@ -551,31 +637,6 @@ async function request(url, data) {
 async function parseBody(response) {
     let r = await response;
     return r.code === 0 ? r.data : null;
-}
-
-async function pushMsg(msg, timeout = 4500) {
-    let url = '/api/notification/pushMsg';
-    let data = {
-        "msg": msg,
-        "timeout": timeout
-    }
-    return parseBody(request(url, data));
-}
-
-async function listDocsByPath({path, notebook = undefined, sort = undefined, maxListLength = undefined}) {
-    let data = {
-        path: path
-    };
-    if (notebook) data["notebook"] = notebook;
-    if (sort) data["sort"] = sort;
-    if (g_setting.docMaxNum != 0) {
-        data["maxListCount"] = g_setting.docMaxNum >= 32 ? g_setting.docMaxNum : 32;
-    } else {
-        data["maxListCount"] = 0;
-    }
-    let url = '/api/filetree/listDocsByPath';
-    return parseBody(request(url, data));
-    //文档hepath与Markdown 内容
 }
 
 async function sqlAPI(stmt) {
@@ -611,76 +672,6 @@ async function getKramdown(blockid){
     if (response) {
         return response.kramdown;
     }
-}
-
-async function isDocHasAv(docId) {
-    let sqlResult = await sqlAPI(`
-    SELECT count(*) as avcount FROM blocks WHERE root_id = '${docId}'
-    AND type = 'av'
-    `);
-    debugPush("文档 av判断", sqlResult);
-    if (sqlResult.length > 0 && sqlResult[0].avcount > 0) {
-        return true;
-    } else {
-        
-        return false;
-    }
-}
-
-async function isDocEmpty(docId, blockCountThreshold = 0) {
-    // 检查父文档是否为空
-    let treeStat = await getTreeStat(docId);
-    if (blockCountThreshold == 0 && treeStat.wordCount != 0 && treeStat.imageCount != 0) {
-        debugPush("treeStat判定文档非空，不插入挂件");
-        return false;
-    }
-    if (blockCountThreshold != 0) {
-        let blockCountSqlResult = await sqlAPI(`SELECT count(*) as bcount FROM blocks WHERE root_id like '${docId}' AND type in ('p', 'c', 'iframe', 'html', 'video', 'audio', 'widget', 'query_embed', 't')`);
-        if (blockCountSqlResult.length > 0) {
-            if (blockCountSqlResult[0].bcount > blockCountThreshold) {
-                return false;
-            } else {
-                return true;
-            }
-        }
-    }
-    
-    let sqlResult = await sqlAPI(`SELECT markdown FROM blocks WHERE 
-        root_id like '${docId}' 
-        AND type != 'd' 
-        AND (type != 'p' 
-           OR (type = 'p' AND length != 0)
-           )
-        LIMIT 5`);
-    if (sqlResult.length <= 0) {
-        return true;
-    } else {
-        debugPush("sql判定文档非空，不插入挂件");
-        return false;
-    }
-    // 获取父文档内容
-    let parentDocContent = await getKramdown(docId);
-    // 简化判断，过长的父文档内容必定有文本，不插入 // 作为参考，空文档的kramdown长度约为400
-    if (parentDocContent.length > 1000) {
-        debugPush("父文档较长，认为非空，不插入挂件", parentDocContent.length);
-        return;
-    }
-    // console.log(parentDocContent);
-    // 清理ial和换行、空格
-    let parentDocPlainText = parentDocContent;
-    // 清理ial中的对象信息（例：文档块中的scrool字段），防止后面匹配ial出现遗漏
-    parentDocPlainText = parentDocPlainText.replace(new RegExp('\\"{[^\n]*}\\"', "gm"), "\"\"")
-    // console.log("替换内部对象中间结果", parentDocPlainText);
-    // 清理ial
-    parentDocPlainText = parentDocPlainText.replace(new RegExp('{:[^}]*}', "gm"), "");
-    // 清理换行
-    parentDocPlainText = parentDocPlainText.replace(new RegExp('\n', "gm"), "");
-    // 清理空格
-    parentDocPlainText = parentDocPlainText.replace(new RegExp(' +', "gm"), "");
-    debugPush(`父文档文本（+标记）为 ${parentDocPlainText}`);
-    debugPush(`父文档内容为空？${parentDocPlainText == ""}`);
-    if (parentDocPlainText != "") return false;
-    return true;
 }
 
 async function getCurrentDocIdF() {
@@ -861,20 +852,16 @@ function generateSettingPanelHTML(settingObjectArray) {
                 </label>`
                 break;
             }
+            case "HINT": {
+                inputElemStr = ``;
+                break;
+            }
         }
         
         resultHTML += temp.replace("*#*##*#*", inputElemStr);
     }
     // console.log(resultHTML);
     return resultHTML;
-}
-
-/**
- * 由配置文件读取配置
- */
-function loadCacheSettings() {
-    // 检索当前页面所有设置项元素
-
 }
 
 /**
