@@ -99,7 +99,7 @@ class DoubleClickFileTreePlugin extends siyuan.Plugin {
                 for (const addedNode of mutation.addedNodes) {
                   if (addedNode.nodeType === 1 && addedNode.dataset["key"] === "dialog-movepathto") {
                         // dialogObject.element.removeEventListener("click", rawClickActor, true);
-                        dialogObject.element.addEventListener("click", rawClickActor, true);
+                        addedNode.addEventListener("click", rawClickActor, true);
                   }
                 }
               }
