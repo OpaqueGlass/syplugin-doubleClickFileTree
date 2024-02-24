@@ -28,8 +28,7 @@ const siyuan = require('siyuan');
 /**
  * 全局变量
  */
-let g_switchTabObserver; // 页签切换与新建监视器
-let g_windowObserver; // 窗口监视器
+let g_bodyObserver;
 const CONSTANTS = {
     STYLE_ID: "og-file-tree-enhance-plugin-style",
     ICON_ALL: 2,
@@ -47,12 +46,12 @@ const openDocActor = clickFileTreeHandler.bind(this, CONSTANTS.ACTION_OPEN_DOC);
 const rawClickActor = clickFileTreeHandler.bind(this, CONSTANTS.ACTION_RAW_CLICK);
 let g_writeStorage;
 let g_isMobile = false;
-let g_mutex = 0;
 let g_app;
 let g_isRecentClicked = 0; // 判定是否近期点击过文档树，改为存放时间戳，当点击任务被消费后，重置为0
 let g_recentClickedId = null;
 let g_recentClickCheckTimeout = null; // 等待重新判定timeout
 let g_isPluginClickToggle = false;
+let g_isPluginRawClickItem = false;
 let g_setting = {
     dblclickShowSubDoc: null,
     dblclickDelay: null,
@@ -62,6 +61,7 @@ let g_setting = {
     extendClickArea: null,
     unfoldSubDocsWhileOpenParent: null,
     openToTop: null,
+    applyToDialog: null,
     enableMobile: null,
 };
 let g_setting_default = {
@@ -73,6 +73,7 @@ let g_setting_default = {
     extendClickArea: false,
     unfoldSubDocsWhileOpenParent: false,
     openToTop: false,
+    applyToDialog: true,
     enableMobile: false,
 };
 /**
@@ -92,7 +93,18 @@ class DoubleClickFileTreePlugin extends siyuan.Plugin {
 
         g_writeStorage = this.saveData;
 
-        
+        g_bodyObserver = new MutationObserver((mutationsList, observer) => {
+            for (const mutation of mutationsList) {
+              if (mutation.type === 'childList') {
+                for (const addedNode of mutation.addedNodes) {
+                  if (addedNode.nodeType === 1 && addedNode.dataset["key"] === "dialog-movepathto") {
+                        // dialogObject.element.removeEventListener("click", rawClickActor, true);
+                        dialogObject.element.addEventListener("click", rawClickActor, true);
+                  }
+                }
+              }
+            }
+          });
         logPush('FileTreeEnhancePluginInited');
     }
     onLayoutReady() {
@@ -176,6 +188,7 @@ class DoubleClickFileTreePlugin extends siyuan.Plugin {
             new SettingProperty("extendClickArea", "SWITCH", null),
             new SettingProperty("sameToOutline", "SWITCH", null),
             new SettingProperty("openToTop", "SWITCH", null),
+            new SettingProperty("applyToDialog", "SWITCH", null),
             new SettingProperty("enableMobile", "SWITCH", null),
             new SettingProperty("aboutAuthor", "HINT", null),
         ]);
@@ -212,7 +225,14 @@ class DoubleClickFileTreePlugin extends siyuan.Plugin {
             document.addEventListener('keydown', this.bindKeyDownEvent.bind(this));              
         }
         if (!g_setting.sameToOutline || removeMode) {
-            document.addEventListener('keydown', this.bindKeyDownEvent.bind(this));  
+            document.removeEventListener('keydown', this.bindKeyDownEvent.bind(this));  
+        }
+
+        if (g_setting.applyToDialog) {
+            g_bodyObserver.observe(document.body, {childList: true, subtree: false, attribute: false});
+        }
+        if (!g_setting.applyToDialog || removeMode) {
+            g_bodyObserver.disconnect();
         }
     }
     bindKeyDownEvent(event) {
@@ -328,9 +348,9 @@ function initRetry() {
  * @param {*} event 
  * @returns 
  */
-function clickFileTreeHandler(event) {
+function clickFileTreeHandler(openActionType, event) {
     if (event.button != 0) {
-        debugPush('按下的按键不是右键，终止操作')
+        debugPush('按下的按键不是左键，终止操作')
         return;
     }
     if (event.ctrlKey || event.shiftKey || event.altKey) {
@@ -362,13 +382,19 @@ function clickFileTreeHandler(event) {
         }
     }
     if (document.getElementById("commonMenu") && !document.getElementById("commonMenu").classList.contains("fn__none")) {
-        debugPush("当前存在commonMene右键菜单，终止操作");
+        debugPush("当前存在commonMeue右键菜单，终止操作");
+        return;
+    }
+    if (openActionType == CONSTANTS.ACTION_RAW_CLICK && g_isPluginRawClickItem) {
+        g_isPluginRawClickItem = false;
+        debugPush("由插件执行点击，终止操作");
         return;
     }
     debugPush("event", event);
     
     let timeGap = new Date().getTime() - g_isRecentClicked;
 
+    // 实际上单击执行不是严格按照dblclickDelay的，感觉最多延迟30ms，最少3
     if (timeGap > g_setting.dblclickDelay) {
         debugPush("首次点击");
         g_isRecentClicked = new Date().getTime();
@@ -376,7 +402,10 @@ function clickFileTreeHandler(event) {
         const sourceElem = getSourceItemElement(event);
         g_recentClickedId = sourceElem?.getAttribute("data-node-id");
         debugPush("点击的元素与事件", event, sourceElem, g_recentClickedId);
-        if (!isValidStr(g_recentClickedId) && (sourceElem?.getAttribute("data-type") !== "navigation-root" || sourceElem?.getAttribute("data-type") !== "NodeHeading") ) {
+        // TODO: 这个判断有点问题，等下重新想一下navigation-root
+        // 没有对应id  并且   （不是开头 或  不是大纲）
+        // 大概  换成 如果是笔记本 ，就跳这个
+        if (!isValidStr(g_recentClickedId) && (sourceElem?.getAttribute("data-type") == "navigation-root" || sourceElem?.getAttribute("data-path") == undefined) ) {
             debugPush("点击的元素不是文件，终止操作");
             g_isRecentClicked = 0;
             return;
@@ -393,7 +422,12 @@ function clickFileTreeHandler(event) {
         } else if (toggleNotExist && g_setting.revertBehavior) {
             delay = 0;
             g_isRecentClicked = 0;
-            singleClickOpenDocHandler(event);
+            // TODO: 判断Type，调用不同的打开函数
+            if (openActionType == CONSTANTS.ACTION_OPEN_DOC) {
+                singleClickOpenDocHandler(event);
+            } else {
+                pluginClickHandler(event);
+            }
             event.preventDefault();
             event.stopPropagation();
             event.stopImmediatePropagation();
@@ -402,7 +436,7 @@ function clickFileTreeHandler(event) {
         g_recentClickCheckTimeout = setTimeout(()=>{
             debugPush("执行延时任务");
             g_isRecentClicked = 0;
-            singleClickHandler(event);
+            singleClickHandler(event, openActionType);
             g_recentClickedId = null;
         }, delay);
         event.preventDefault();
@@ -413,7 +447,7 @@ function clickFileTreeHandler(event) {
         debugPush("二次点击");
         clearTimeout(g_recentClickCheckTimeout);
         g_isRecentClicked = 0;
-        if (doubleClickHandler(event)) {
+        if (doubleClickHandler(event, openActionType)) {
             g_recentClickedId = null;
             event.preventDefault();
             event.stopPropagation();
@@ -423,12 +457,30 @@ function clickFileTreeHandler(event) {
 }
 
 // TODO 这边需要实现交换逻辑
-function singleClickHandler(event) {
+function singleClickHandler(event, openActionType) {
     if (g_setting.revertBehavior) {
         singleClickUnfoldHandler(event);
-    } else {
+    } else if (openActionType == CONSTANTS.ACTION_OPEN_DOC) {
         singleClickOpenDocHandler(event);
+    } else {
+        pluginClickHandler(event);
     }
+}
+
+function pluginClickHandler(event) {
+    const sourceElem = getSourceItemElement(event);
+    if (sourceElem == null) {
+        debugPush("sourceElem未找到");
+        return false;
+    }
+    if (!event.ctrlKey) {
+        document.getElementById("foldTree").querySelectorAll(".b3-list-item--focus").forEach((elem)=>elem.classList.remove("b3-list-item--focus"));
+    }
+    sourceElem.classList.add("b3-list-item--focus");
+    debugPush("由 插件点击 处理", sourceElem);
+    // g_isPluginRawClickItem = true;
+    // sourceElem.click();
+    return true;
 }
 
 
@@ -461,9 +513,13 @@ function singleClickUnfoldHandler(event) {
     }
 }
 
-function doubleClickHandler(event) {
+function doubleClickHandler(event, openActionType) {
     if (g_setting.revertBehavior) {
-        return doubleClickOpenDocHandler(event);
+        if (openActionType == CONSTANTS.ACTION_OPEN_DOC) {
+            return doubleClickOpenDocHandler(event);
+        } else {
+            return pluginClickHandler(event);
+        }
     } else {
         return doubleClickUnfoldHandler(event);
     }
@@ -549,15 +605,15 @@ function openDocByTreeItemElement(sourceElem) {
             }
             // 打开文档
             if (!isMobile()) {
-            siyuan.openTab({
-                app: g_app,
-                doc: {
-                    id: targetNodeId,
-                    action: souceType == FILE_TREE && g_setting.openToTop ? ["cb-get-focus"] : ["cb-get-focus", "cb-get-scroll"]
-                }
-            }).catch((err)=>{
-                errorPush("打开文档时发生错误", err);
-            });
+                siyuan.openTab({
+                    app: g_app,
+                    doc: {
+                        id: targetNodeId,
+                        action: souceType == FILE_TREE && g_setting.openToTop ? ["cb-get-focus"] : ["cb-get-focus", "cb-get-scroll"]
+                    }
+                }).catch((err)=>{
+                    errorPush("打开文档时发生错误", err);
+                });
             } else {
                 siyuan.openMobileFileById(g_app,
                     targetNodeId,
@@ -587,7 +643,8 @@ function getSourceItemElement(event) {
         }
         // debugPush("getSource", ftItemElem);
         const elemDataType = ftItemElem.getAttribute("data-type");
-        if (elemDataType === "navigation-file" || elemDataType === "NodeHeading") {
+        const elemDataPath = ftItemElem.getAttribute("data-path");
+        if (elemDataType === "navigation-file" || elemDataType === "NodeHeading" || elemDataPath != undefined) {
             isFound = true;
             break;
         } else if (elemDataType === "navigation-root") {
@@ -618,8 +675,16 @@ function getSourceSpanElement(elem) {
     return isFound ? ftItemElem : null;
 }
 
-function isSourceElementNotebook() {
-
+function bindHandlerForDialog() {
+    debugPush("BIND HANDLER FOR DIALOG");
+    if (window.siyuan.dialogs && window.siyuan.dialogs.length > 0) {
+        for (const dialogObject of window.siyuan.dialogs) {
+            if (["dialog-movepathto"].includes(dialogObject.element.dataset["key"])) {
+                dialogObject.element.removeEventListener("click", rawClickActor, true);
+                dialogObject.element.addEventListener("click", rawClickActor, true);
+            }
+        }
+    }
 }
 
 function setStyle() {
