@@ -40,7 +40,11 @@ const CONSTANTS = {
     POP_NONE: 0,
     POP_LIMIT: 1,
     POP_ALL: 2,
+    ACTION_OPEN_DOC: 0,
+    ACTION_RAW_CLICK: 1,
 }
+const openDocActor = clickFileTreeHandler.bind(this, CONSTANTS.ACTION_OPEN_DOC);
+const rawClickActor = clickFileTreeHandler.bind(this, CONSTANTS.ACTION_RAW_CLICK);
 let g_writeStorage;
 let g_isMobile = false;
 let g_mutex = 0;
@@ -58,6 +62,7 @@ let g_setting = {
     extendClickArea: null,
     unfoldSubDocsWhileOpenParent: null,
     openToTop: null,
+    enableMobile: null,
 };
 let g_setting_default = {
     dblclickShowSubDoc: true,
@@ -68,6 +73,7 @@ let g_setting_default = {
     extendClickArea: false,
     unfoldSubDocsWhileOpenParent: false,
     openToTop: false,
+    enableMobile: false,
 };
 /**
  * Plugin类
@@ -170,6 +176,7 @@ class DoubleClickFileTreePlugin extends siyuan.Plugin {
             new SettingProperty("extendClickArea", "SWITCH", null),
             new SettingProperty("sameToOutline", "SWITCH", null),
             new SettingProperty("openToTop", "SWITCH", null),
+            new SettingProperty("enableMobile", "SWITCH", null),
             new SettingProperty("aboutAuthor", "HINT", null),
         ]);
 
@@ -178,20 +185,27 @@ class DoubleClickFileTreePlugin extends siyuan.Plugin {
     }
 
     eventBusInnerHandler(removeMode = false) {
-        document.querySelector('.sy__file')?.addEventListener('click', clickFileTreeHandler, true);
-
+        const isMobileDevice = isMobile();
+        if (isMobileDevice && !g_setting.enableMobile) {
+            debugPush("移动设备，且未启用功能，退出");
+            return;
+        }
+        const fileTreeQuery = isMobileDevice ? "#sidebar [data-type='sidebar-file']" : ".sy__file";
+        const outlineQuery = isMobileDevice ? "#sidebar [data-type='sidebar-outline']" : ".sy__outline";
         if (removeMode) {
-            document.querySelector('.sy__file')?.removeEventListener('click', clickFileTreeHandler, true);
+            document.querySelector(fileTreeQuery)?.removeEventListener('click', openDocActor, true);
+        } else {
+            document.querySelector(fileTreeQuery)?.addEventListener('click', openDocActor, true);
         }
         if (g_setting.sameToOutline) {
-            document.querySelectorAll('.sy__outline').forEach((elem)=>{
-                elem.removeEventListener('click', clickFileTreeHandler, true);
-                elem.addEventListener('click', clickFileTreeHandler, true);
+            document.querySelectorAll(outlineQuery).forEach((elem)=>{
+                elem.removeEventListener('click', openDocActor, true);
+                elem.addEventListener('click', openDocActor, true);
             })
         }
         if (!g_setting.sameToOutline || removeMode){
-            document.querySelectorAll('.sy__outline').forEach((elem)=>{
-                elem.removeEventListener('click', clickFileTreeHandler, true);
+            document.querySelectorAll(outlineQuery).forEach((elem)=>{
+                elem.removeEventListener('click', openDocActor, true);
             })
         }
         if (g_setting.sameToOutline) {
@@ -521,9 +535,9 @@ function openDocByTreeItemElement(sourceElem) {
             debugPush("打开文档", targetNodeId);
             // 设定高亮
             if (souceType == OUTLINE_TREE) {
-                document.querySelector(".sy__outline .b3-list-item--focus")?.classList.remove("b3-list-item--focus");
+                document.querySelector(".sy__outline .b3-list-item--focus, #sidebar [data-type='sidebar-outline'] .b3-list-item--focus")?.classList.remove("b3-list-item--focus");
             } else {
-                document.querySelector(".sy__file .b3-list-item--focus")?.classList.remove("b3-list-item--focus");
+                document.querySelector(".sy__file .b3-list-item--focus, #sidebar [data-type='sidebar-file'] .b3-list-item--focus")?.classList.remove("b3-list-item--focus");
             }
             sourceElem.classList.add("b3-list-item--focus");
             // 展开子层级
@@ -534,6 +548,7 @@ function openDocByTreeItemElement(sourceElem) {
                 b3ListItemToggle.click();
             }
             // 打开文档
+            if (!isMobile()) {
             siyuan.openTab({
                 app: g_app,
                 doc: {
@@ -543,6 +558,13 @@ function openDocByTreeItemElement(sourceElem) {
             }).catch((err)=>{
                 errorPush("打开文档时发生错误", err);
             });
+            } else {
+                siyuan.openMobileFileById(g_app,
+                    targetNodeId,
+                    souceType == FILE_TREE && g_setting.openToTop ? ["cb-get-focus"] : ["cb-get-focus", "cb-get-scroll"]
+                );
+            }
+            
             return true;
         }
     } else if (souceType == NOTEBOOK) {
