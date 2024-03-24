@@ -42,9 +42,11 @@ const CONSTANTS = {
     POP_ALL: 2,
     ACTION_OPEN_DOC: 0,
     ACTION_RAW_CLICK: 1,
+    ACTION_TRUE_CLICK: 2,
 }
 const openDocActor = clickFileTreeHandler.bind(this, CONSTANTS.ACTION_OPEN_DOC);
 const rawClickActor = clickFileTreeHandler.bind(this, CONSTANTS.ACTION_RAW_CLICK);
+const trueClickActor = clickFileTreeHandler.bind(this, CONSTANTS.ACTION_TRUE_CLICK);
 let g_writeStorage;
 let g_isMobile = false;
 let g_app;
@@ -251,13 +253,13 @@ class DoubleClickFileTreePlugin extends siyuan.Plugin {
 
         if (g_setting.sameToTag) {
             document.querySelectorAll(tagQuery).forEach((elem)=>{
-                elem.removeEventListener(clickEventBindEventType, rawClickActor, true);
-                elem.addEventListener(clickEventBindEventType, rawClickActor, true);
+                elem.removeEventListener(clickEventBindEventType, trueClickActor, true);
+                elem.addEventListener(clickEventBindEventType, trueClickActor, true);
             })
         }
         if (!g_setting.sameToTag || removeMode){
             document.querySelectorAll(tagQuery).forEach((elem)=>{
-                elem.removeEventListener(clickEventBindEventType, rawClickActor, true);
+                elem.removeEventListener(clickEventBindEventType, trueClickActor, true);
             })
         }
 
@@ -463,7 +465,7 @@ function clickFileTreeHandler(openActionType, event) {
         debugPush("当前存在commonMeue右键菜单，终止操作");
         return;
     }
-    if (openActionType == CONSTANTS.ACTION_RAW_CLICK && g_isPluginRawClickItem) {
+    if ([CONSTANTS.ACTION_RAW_CLICK, CONSTANTS.ACTION_TRUE_CLICK].includes(openActionType) && g_isPluginRawClickItem) {
         g_isPluginRawClickItem = false;
         debugPush("由插件执行点击，终止操作");
         return;
@@ -502,11 +504,7 @@ function clickFileTreeHandler(openActionType, event) {
             delay = 0;
             g_isRecentClicked = 0;
             // TODO: 判断Type，调用不同的打开函数
-            if (openActionType == CONSTANTS.ACTION_OPEN_DOC) {
-                singleClickOpenDocHandler(event);
-            } else {
-                pluginClickHandler(event);
-            }
+            clickToOpenMulitWayDistributor(event, openActionType);
             event.preventDefault();
             event.stopPropagation();
             event.stopImmediatePropagation();
@@ -535,14 +533,25 @@ function clickFileTreeHandler(openActionType, event) {
     }    
 }
 
+function clickToOpenMulitWayDistributor(event, openActionType) {
+    switch (openActionType) {
+        case CONSTANTS.ACTION_OPEN_DOC:
+            return singleClickOpenDocHandler(event);
+        case CONSTANTS.ACTION_RAW_CLICK:
+            return pluginClickHandler(event);
+        case CONSTANTS.ACTION_TRUE_CLICK:
+            return pluginTrueClickHandler(event);
+        default:
+            return pluginTrueClickHandler(event);
+    }
+}
+
 // TODO 这边需要实现交换逻辑
 function singleClickHandler(event, openActionType) {
     if (g_setting.revertBehavior) {
         singleClickUnfoldHandler(event);
-    } else if (openActionType == CONSTANTS.ACTION_OPEN_DOC) {
-        singleClickOpenDocHandler(event);
     } else {
-        pluginClickHandler(event);
+        clickToOpenMulitWayDistributor(event, openActionType);
     }
 }
 
@@ -559,6 +568,22 @@ function pluginClickHandler(event) {
     debugPush("由 插件点击 处理", sourceElem);
     // g_isPluginRawClickItem = true;
     // sourceElem.click();
+    return true;
+}
+
+function pluginTrueClickHandler(event) {
+    const sourceElem = getSourceItemElement(event);
+    if (sourceElem == null) {
+        debugPush("sourceElem未找到");
+        return false;
+    }
+    if (!event.ctrlKey) {
+        document.getElementById("foldTree")?.querySelectorAll(".b3-list-item--focus").forEach((elem)=>elem.classList.remove("b3-list-item--focus"));
+    }
+    sourceElem.classList.add("b3-list-item--focus");
+    debugPush("由 插件点击 处理", sourceElem);
+    g_isPluginRawClickItem = true;
+    sourceElem.click();
     return true;
 }
 
@@ -594,11 +619,7 @@ function singleClickUnfoldHandler(event) {
 
 function doubleClickHandler(event, openActionType) {
     if (g_setting.revertBehavior) {
-        if (openActionType == CONSTANTS.ACTION_OPEN_DOC) {
-            return doubleClickOpenDocHandler(event);
-        } else {
-            return pluginClickHandler(event);
-        }
+        clickToOpenMulitWayDistributor(event, openActionType);
     } else {
         return doubleClickUnfoldHandler(event);
     }
