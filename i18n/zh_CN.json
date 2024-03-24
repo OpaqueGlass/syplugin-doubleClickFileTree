@@ -24,6 +24,8 @@
     "setting_enableMobile_desp": "手机端双击不太灵敏的样子",
     "setting_openToTop_name": "🧪打开文档后不跳转",
     "setting_openToTop_desp": "启用本功能后，打开文档将不再跳转到上次编辑位置",
+    "setting_sameToTag_name": "🧪标签面板也一样",
+    "setting_sameToTag_desp": "启用本功能后，上述逻辑将应用于标签面板；",
 
     "setting_aboutAuthor_name": "关于",
     "setting_aboutAuthor_desp": "作者：<a target='_blank' href='https://github.com/OpaqueGlass'>OpaqueGlass</a>；<br/>问题反馈&赞助支持：<a target='_blank' href='https://github.com/OpaqueGlass/syplugin-doubleClickFileTree'>github</a> 或 <a target='_blank' href='https://wj.qq.com/s2/12395364/b69f/'>填写问卷</a>；<br/>插件基于<a target='_blank' href='https://www.gnu.org/licenses/agpl-3.0.html'>AGPLv3</a>授权使用；",

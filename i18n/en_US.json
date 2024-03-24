@@ -20,6 +20,12 @@
   "setting_sameToOutline_desp": "After enabling this feature, the aforementioned logic will be applied to the outline panel as well. However, there may be performance issues such as lagging when navigating in the outline and scrolling issues after navigation, especially for dynamically loaded documents. It is recommended to disable this feature in such cases.",
   "setting_openToTop_name": "🧪After opening the document, do not navigate to a different location.",
   "setting_openToTop_desp": "After enabling this feature, opening a document will no longer navigate to the last edited position.",
+  "setting_applyToDialog_name": "🧪The same logic applies to the document selector in the dialogue",
+  "setting_applyToDialog_desp": "When selecting a document within a dialog box, apply the aforementioned logic",
+  "setting_enableMobile_name": "🧪Enable functions in mobile",
+  "setting_enableMobile_desp": "",
+  "setting_sameToTag_name": "🧪The same applies to the tag panel.",
+  "setting_sameToTag_desp": "After enabling this feature, the aforementioned logic will be applied to the tag panel as well. ",
 
   "setting_aboutAuthor_name": "About",
   "setting_aboutAuthor_desp": "Translator: GPT3.5 @ February 23, 2024<br/>Developer: <a target='_blank' href='https://github.com/OpaqueGlass'>OpaqueGlass</a>;<br/>Git repo: <a target='_blank' href='https://github.com/OpaqueGlass/syplugin-doubleClickFileTree'>github</a>;<br/>Released under <a target='_blank' href='https://www.gnu.org/licenses/agpl-3.0.html'>AGPLv3</a> license;",

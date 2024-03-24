@@ -64,6 +64,7 @@ let g_setting = {
     openToTop: null,
     applyToDialog: null,
     enableMobile: null,
+    sameToTag: null,
 };
 let g_setting_default = {
     dblclickShowSubDoc: true,
@@ -76,6 +77,7 @@ let g_setting_default = {
     openToTop: false,
     applyToDialog: false,
     enableMobile: false,
+    sameToTag: false,
 };
 /**
  * Plugin类
@@ -191,6 +193,7 @@ class DoubleClickFileTreePlugin extends siyuan.Plugin {
             new SettingProperty("unfoldSubDocsWhileOpenParent", "SWITCH", null),
             new SettingProperty("extendClickArea", "SWITCH", null),
             new SettingProperty("sameToOutline", "SWITCH", null),
+            new SettingProperty("sameToTag", "SWITCH", null),
             new SettingProperty("openToTop", "SWITCH", null),
             new SettingProperty("applyToDialog", "SWITCH", null),
             new SettingProperty("enableMobile", "SWITCH", null),
@@ -209,6 +212,7 @@ class DoubleClickFileTreePlugin extends siyuan.Plugin {
         }
         const fileTreeQuery = isMobileDevice ? "#sidebar [data-type='sidebar-file']" : ".sy__file";
         const outlineQuery = isMobileDevice ? "#sidebar [data-type='sidebar-outline']" : ".sy__outline";
+        const tagQuery = isMobileDevice ? "#sidebar [data-type='sidebar-tag']" : ".sy__tag";
         const frontend = siyuan.getFrontend();
         const backend = siyuan.getBackend();
 
@@ -218,23 +222,6 @@ class DoubleClickFileTreePlugin extends siyuan.Plugin {
         if (backend == "ios" && frontend == "desktop") {
             errorPush("插件暂未解决iPadOS上的使用问题，在iPadOS上，插件将不绑定任何行为");
             return;
-            if (removeMode) {
-                document.querySelector(fileTreeQuery)?.removeEventListener(clickEventBindEventType, preventClickHander, true);
-            } else {
-                document.querySelector(fileTreeQuery)?.addEventListener(clickEventBindEventType, preventClickHander, true);
-            }
-            if (g_setting.sameToOutline) {
-                document.querySelectorAll(outlineQuery).forEach((elem)=>{
-                    elem.removeEventListener(clickEventBindEventType, preventClickHander, true);
-                    elem.addEventListener(clickEventBindEventType, preventClickHander, true);
-                })
-            }
-            if (!g_setting.sameToOutline || removeMode){
-                document.querySelectorAll(outlineQuery).forEach((elem)=>{
-                    elem.removeEventListener(clickEventBindEventType, preventClickHander, true);
-                })
-            }
-            clickEventBindEventType = "mouseup";
         }
         let useCapture = true;
         // siyuan.showMessage(`前端 ${frontend} 后端 ${backend} ${clickEventBindEventType}`);
@@ -254,11 +241,24 @@ class DoubleClickFileTreePlugin extends siyuan.Plugin {
                 elem.removeEventListener(clickEventBindEventType, openDocActor, true);
             })
         }
+
         if (g_setting.sameToOutline) {
             document.addEventListener('keydown', this.bindKeyDownEvent.bind(this));              
         }
         if (!g_setting.sameToOutline || removeMode) {
             document.removeEventListener('keydown', this.bindKeyDownEvent.bind(this));  
+        }
+
+        if (g_setting.sameToTag) {
+            document.querySelectorAll(tagQuery).forEach((elem)=>{
+                elem.removeEventListener(clickEventBindEventType, rawClickActor, true);
+                elem.addEventListener(clickEventBindEventType, rawClickActor, true);
+            })
+        }
+        if (!g_setting.sameToTag || removeMode){
+            document.querySelectorAll(tagQuery).forEach((elem)=>{
+                elem.removeEventListener(clickEventBindEventType, rawClickActor, true);
+            })
         }
 
         if (g_setting.applyToDialog) {
@@ -483,7 +483,8 @@ function clickFileTreeHandler(openActionType, event) {
         // TODO: 这个判断有点问题，等下重新想一下navigation-root
         // 没有对应id  并且   （不是开头 或  不是大纲）
         // 大概  换成 如果是笔记本 ，就跳这个
-        if (!isValidStr(g_recentClickedId) && (sourceElem?.getAttribute("data-type") == "navigation-root" || sourceElem?.getAttribute("data-path") == undefined) ) {
+        if (!isValidStr(g_recentClickedId) && (sourceElem?.getAttribute("data-type") == "navigation-root" || sourceElem?.getAttribute("data-path") == undefined)
+        && !(sourceElem?.getAttribute("data-treetype") == "tag") ) {
             debugPush("点击的元素不是文件，终止操作");
             g_isRecentClicked = 0;
             return;
@@ -552,7 +553,7 @@ function pluginClickHandler(event) {
         return false;
     }
     if (!event.ctrlKey) {
-        document.getElementById("foldTree").querySelectorAll(".b3-list-item--focus").forEach((elem)=>elem.classList.remove("b3-list-item--focus"));
+        document.getElementById("foldTree")?.querySelectorAll(".b3-list-item--focus").forEach((elem)=>elem.classList.remove("b3-list-item--focus"));
     }
     sourceElem.classList.add("b3-list-item--focus");
     debugPush("由 插件点击 处理", sourceElem);
@@ -722,7 +723,8 @@ function getSourceItemElement(event) {
         // debugPush("getSource", ftItemElem);
         const elemDataType = ftItemElem.getAttribute("data-type");
         const elemDataPath = ftItemElem.getAttribute("data-path");
-        if (elemDataType === "navigation-file" || elemDataType === "NodeHeading" || elemDataPath != undefined) {
+        const elemDataTreeType = ftItemElem.getAttribute("data-treetype");
+        if (elemDataType === "navigation-file" || elemDataType === "NodeHeading" || elemDataPath != undefined || elemDataTreeType == "tag") {
             isFound = true;
             break;
         } else if (elemDataType === "navigation-root") {
