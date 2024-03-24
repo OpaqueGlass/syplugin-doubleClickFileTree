@@ -35,6 +35,7 @@ const CONSTANTS = {
     ICON_NONE: 0,
     ICON_CUSTOM_ONLY: 1,
     PLUGIN_NAME: "og_double_click_file_tree",
+    PLUGIN_ORI_NAME: "syplugin-doubleClickFileTree",
     SAVE_TIMEOUT: 900,
     POP_NONE: 0,
     POP_LIMIT: 1,
@@ -73,7 +74,7 @@ let g_setting_default = {
     extendClickArea: false,
     unfoldSubDocsWhileOpenParent: false,
     openToTop: false,
-    applyToDialog: true,
+    applyToDialog: false,
     enableMobile: false,
 };
 /**
@@ -82,6 +83,8 @@ let g_setting_default = {
 class DoubleClickFileTreePlugin extends siyuan.Plugin {
 
     tabOpenObserver =  null;
+    backend = null;
+    frontend = null;
 
     onload() {
         g_isMobile = isMobile();
@@ -99,7 +102,12 @@ class DoubleClickFileTreePlugin extends siyuan.Plugin {
                 for (const addedNode of mutation.addedNodes) {
                   if (addedNode.nodeType === 1 && addedNode.dataset["key"] === "dialog-movepathto") {
                         // dialogObject.element.removeEventListener("click", rawClickActor, true);
-                        addedNode.addEventListener("click", rawClickActor, true);
+                        if (this.backend == "ios" && this.frontend == "desktop") {
+                            addedNode.addEventListener("mouseup", rawClickActor, true);
+                            addedNode.addEventListener("click", preventClickHander, true);
+                        } else {
+                            addedNode.addEventListener("click", rawClickActor, true);
+                        }
                   }
                 }
               }
@@ -154,11 +162,8 @@ class DoubleClickFileTreePlugin extends siyuan.Plugin {
         const actionButtons = settingDialog.element.querySelectorAll(`#${CONSTANTS.PLUGIN_NAME}-form-action button`);
         actionButtons[0].addEventListener("click",()=>{settingDialog.destroy()}),
         actionButtons[1].addEventListener("click",()=>{
-            // this.writeStorage('hello.txt', 'world' + Math.random().toFixed(2));
             debugPush('SAVING');
             let uiSettings = loadUISettings(settingForm);
-            // clearTimeout(g_saveTimeout);
-            // g_saveTimeout = setTimeout(()=>{
             this.saveData(`settings.json`, JSON.stringify(uiSettings));
             Object.assign(g_setting, uiSettings);
             removeStyle();
@@ -170,7 +175,6 @@ class DoubleClickFileTreePlugin extends siyuan.Plugin {
             }
             debugPush("SAVED");
             settingDialog.destroy();
-            // }, CONSTANTS.SAVE_TIMEOUT);
         });
         // 绑定dialog和移除操作
 
@@ -205,20 +209,49 @@ class DoubleClickFileTreePlugin extends siyuan.Plugin {
         }
         const fileTreeQuery = isMobileDevice ? "#sidebar [data-type='sidebar-file']" : ".sy__file";
         const outlineQuery = isMobileDevice ? "#sidebar [data-type='sidebar-outline']" : ".sy__outline";
+        const frontend = siyuan.getFrontend();
+        const backend = siyuan.getBackend();
+
+        
+        let actorFunction = openDocActor;
+        let clickEventBindEventType = "click";
+        if (backend == "ios" && frontend == "desktop") {
+            errorPush("插件暂未解决iPadOS上的使用问题，在iPadOS上，插件将不绑定任何行为");
+            return;
+            if (removeMode) {
+                document.querySelector(fileTreeQuery)?.removeEventListener(clickEventBindEventType, preventClickHander, true);
+            } else {
+                document.querySelector(fileTreeQuery)?.addEventListener(clickEventBindEventType, preventClickHander, true);
+            }
+            if (g_setting.sameToOutline) {
+                document.querySelectorAll(outlineQuery).forEach((elem)=>{
+                    elem.removeEventListener(clickEventBindEventType, preventClickHander, true);
+                    elem.addEventListener(clickEventBindEventType, preventClickHander, true);
+                })
+            }
+            if (!g_setting.sameToOutline || removeMode){
+                document.querySelectorAll(outlineQuery).forEach((elem)=>{
+                    elem.removeEventListener(clickEventBindEventType, preventClickHander, true);
+                })
+            }
+            clickEventBindEventType = "mouseup";
+        }
+        let useCapture = true;
+        // siyuan.showMessage(`前端 ${frontend} 后端 ${backend} ${clickEventBindEventType}`);
         if (removeMode) {
-            document.querySelector(fileTreeQuery)?.removeEventListener('click', openDocActor, true);
+            document.querySelector(fileTreeQuery)?.removeEventListener(clickEventBindEventType, openDocActor, true);
         } else {
-            document.querySelector(fileTreeQuery)?.addEventListener('click', openDocActor, true);
+            document.querySelector(fileTreeQuery)?.addEventListener(clickEventBindEventType, openDocActor, true);
         }
         if (g_setting.sameToOutline) {
             document.querySelectorAll(outlineQuery).forEach((elem)=>{
-                elem.removeEventListener('click', openDocActor, true);
-                elem.addEventListener('click', openDocActor, true);
+                elem.removeEventListener(clickEventBindEventType, openDocActor, true);
+                elem.addEventListener(clickEventBindEventType, openDocActor, true);
             })
         }
         if (!g_setting.sameToOutline || removeMode){
             document.querySelectorAll(outlineQuery).forEach((elem)=>{
-                elem.removeEventListener('click', openDocActor, true);
+                elem.removeEventListener(clickEventBindEventType, openDocActor, true);
             })
         }
         if (g_setting.sameToOutline) {
@@ -323,7 +356,13 @@ class SettingProperty {
         this.id = `${CONSTANTS.PLUGIN_NAME}_${id}`;
         this.simpId = id;
         this.name = language[`setting_${id}_name`];
+        if (!isValidStr(this.name)) {
+            this.name = `setting_${id}_name`;
+        }
         this.desp = language[`setting_${id}_desp`];
+        if (this.desp == undefined) {
+            this.desp = `setting_${id}_desp`;
+        }
         this.type = type;
         this.limit = limit;
         if (value) {
@@ -341,6 +380,45 @@ function initRetry() {
         return true;
     }
     document.querySelector('.sy__file')?.addEventListener('click', clickFileTreeHandler, true);
+}
+
+function preventClickHander(event) {
+    const debugPush = siyuan.showMessage;
+    if (event.button != 0) {
+        debugPush('按下的按键不是左键，终止操作')
+        return;
+    }
+    if (event.ctrlKey || event.shiftKey || event.altKey) {
+        debugPush("伴随ctrl/shift/alt按下，终止操作");
+        return;
+    }
+    if (!g_setting.disableChangeIcon && event.srcElement.classList.contains("b3-list-item__icon")) {
+        debugPush("点击的是图标，终止操作");
+        return;
+    }
+    if (event.srcElement.classList.contains("b3-list-item__toggle") || ["svg", "use"].includes(event.srcElement.tagName)) {
+        const sourceElem = getSourceSpanElement(event.srcElement);
+        if (sourceElem == null) {
+            debugPush("sourceElem未找到，未知情况，不处理", event.srcElement);
+            return;
+        }
+        if (["more-file", "more-root", "new"].includes(sourceElem.getAttribute("data-type"))) {
+            debugPush("点击的是更多按钮或新建按钮，终止操作");
+            return;
+        }
+        // 理论上剩下的情况就是toggle
+        if (!sourceElem.classList.contains("b3-list-item__toggle")) {
+            debugPush("点击的还不是展开按钮，不知道什么情况，终止操作", event.srcElement, sourceElem);
+        }
+        if (!g_setting.extendClickArea || g_isPluginClickToggle) {
+            debugPush("点击的是展开按钮，且不允许响应展开");
+            g_isPluginClickToggle = false;
+            return;
+        }
+    }
+    event.stopImmediatePropagation();
+    event.stopPropagation();
+    event.preventDefault();
 }
 
 /**
