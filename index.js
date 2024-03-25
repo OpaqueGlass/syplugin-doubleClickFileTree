@@ -125,7 +125,7 @@ class DoubleClickFileTreePlugin extends siyuan.Plugin {
             try {
                 // let settingData = JSON.parse(settingCache);
                 Object.assign(g_setting, settingCache);
-                this.eventBusInnerHandler(); 
+                bindBasicEventHandler();
             }catch(e){
                 warnPush("DBT载入配置时发生错误",e);
             }
@@ -135,12 +135,13 @@ class DoubleClickFileTreePlugin extends siyuan.Plugin {
         }, (e)=> {
             debugPush("配置文件读入失败", e);
         });
+        bindClickDockEvent();
     }
 
     onunload() {
         this.el && this.el.remove();
         removeStyle();
-        this.eventBusInnerHandler(true);
+        bindBasicEventHandler(true);
         // 善后
     }
     // TODO: 重写载入设置
@@ -173,7 +174,7 @@ class DoubleClickFileTreePlugin extends siyuan.Plugin {
             removeStyle();
             setStyle();
             try {
-                this.eventBusInnerHandler(); 
+                bindBasicEventHandler(); 
             }catch(err){
                 console.error("og eventBusError", err);
             }
@@ -206,83 +207,104 @@ class DoubleClickFileTreePlugin extends siyuan.Plugin {
         settingDialog.element.querySelector(`#${CONSTANTS.PLUGIN_NAME}-form-content`).appendChild(hello);
     }
 
-    eventBusInnerHandler(removeMode = false) {
-        const isMobileDevice = isMobile();
-        if (isMobileDevice && !g_setting.enableMobile) {
-            debugPush("移动设备，且未启用功能，退出");
-            return;
-        }
-        const fileTreeQuery = isMobileDevice ? "#sidebar [data-type='sidebar-file']" : ".sy__file";
-        const outlineQuery = isMobileDevice ? "#sidebar [data-type='sidebar-outline']" : ".sy__outline";
-        const tagQuery = isMobileDevice ? "#sidebar [data-type='sidebar-tag']" : ".sy__tag";
-        const frontend = siyuan.getFrontend();
-        const backend = siyuan.getBackend();
+    
+}
+// 入口绑定开始
 
-        
-        let actorFunction = openDocActor;
-        let clickEventBindEventType = "click";
-        if (backend == "ios" && frontend == "desktop") {
-            errorPush("插件暂未解决iPadOS上的使用问题，在iPadOS上，插件将不绑定任何行为");
-            return;
-        }
-        let useCapture = true;
-        // siyuan.showMessage(`前端 ${frontend} 后端 ${backend} ${clickEventBindEventType}`);
-        if (removeMode) {
-            document.querySelector(fileTreeQuery)?.removeEventListener(clickEventBindEventType, openDocActor, true);
-        } else {
-            document.querySelector(fileTreeQuery)?.addEventListener(clickEventBindEventType, openDocActor, true);
-        }
-        if (g_setting.sameToOutline) {
-            document.querySelectorAll(outlineQuery).forEach((elem)=>{
-                elem.removeEventListener(clickEventBindEventType, openDocActor, true);
-                elem.addEventListener(clickEventBindEventType, openDocActor, true);
-            })
-        }
-        if (!g_setting.sameToOutline || removeMode){
-            document.querySelectorAll(outlineQuery).forEach((elem)=>{
-                elem.removeEventListener(clickEventBindEventType, openDocActor, true);
-            })
-        }
-
-        if (g_setting.sameToOutline) {
-            document.addEventListener('keydown', this.bindKeyDownEvent.bind(this));              
-        }
-        if (!g_setting.sameToOutline || removeMode) {
-            document.removeEventListener('keydown', this.bindKeyDownEvent.bind(this));  
-        }
-
-        if (g_setting.sameToTag) {
-            document.querySelectorAll(tagQuery).forEach((elem)=>{
-                elem.removeEventListener(clickEventBindEventType, trueClickActor, true);
-                elem.addEventListener(clickEventBindEventType, trueClickActor, true);
-            })
-        }
-        if (!g_setting.sameToTag || removeMode){
-            document.querySelectorAll(tagQuery).forEach((elem)=>{
-                elem.removeEventListener(clickEventBindEventType, trueClickActor, true);
-            })
-        }
-
-        if (g_setting.applyToDialog) {
-            g_bodyObserver.observe(document.body, {childList: true, subtree: false, attribute: false});
-        }
-        if (!g_setting.applyToDialog || removeMode) {
-            g_bodyObserver.disconnect();
-        }
+function bindBasicEventHandler(removeMode = false) {
+    const isMobileDevice = isMobile();
+    debugPush("绑定开始");
+    if (isMobileDevice && !g_setting.enableMobile) {
+        debugPush("移动设备，且未启用功能，退出");
+        return;
     }
-    bindKeyDownEvent(event) {
-        // 判断是否按下了 Alt 键，并且同时按下了 O 键
-        if (isShortcutMatch(event, window.siyuan.config.keymap.editor.general.outline.custom ?? "⌥O")) {
-            // 在这里执行按下 Alt + O 键的逻辑
-            debugPush("按下ALt+O");
-            setTimeout(()=>{
-                this.eventBusInnerHandler(); 
-            }, 300);      
-        }
+    const fileTreeQuery = isMobileDevice ? "#sidebar [data-type='sidebar-file']" : ".sy__file";
+    const outlineQuery = isMobileDevice ? "#sidebar [data-type='sidebar-outline']" : ".sy__outline";
+    const tagQuery = isMobileDevice ? "#sidebar [data-type='sidebar-tag']" : ".sy__tag";
+    const frontend = siyuan.getFrontend();
+    const backend = siyuan.getBackend();
+
+    
+    let actorFunction = openDocActor;
+    let clickEventBindEventType = "click";
+    if (backend == "ios" && frontend == "desktop") {
+        errorPush("插件暂未解决iPadOS上的使用问题，在iPadOS上，插件将不绑定任何行为");
+        return;
+    }
+    let useCapture = true;
+    // siyuan.showMessage(`前端 ${frontend} 后端 ${backend} ${clickEventBindEventType}`);
+    // 绑定文档树行为
+    document.querySelector(fileTreeQuery)?.removeEventListener(clickEventBindEventType, openDocActor, true);
+    if (!removeMode) {
+        document.querySelector(fileTreeQuery)?.addEventListener(clickEventBindEventType, openDocActor, true);
+    }
+
+    // 绑定点开docker行为
+    document.querySelectorAll(outlineQuery).forEach((elem)=>{
+        elem.removeEventListener(clickEventBindEventType, openDocActor, true);
+    });
+    if (g_setting.sameToOutline && !removeMode) {
+        document.querySelectorAll(outlineQuery).forEach((elem)=>{
+            elem.removeEventListener(clickEventBindEventType, openDocActor, true);
+            elem.addEventListener(clickEventBindEventType, openDocActor, true);
+        })
+    }
+
+    // 快捷键打开响应
+    document.removeEventListener('keydown', bindKeyDownEvent.bind(this));  
+    if (!removeMode && (g_setting.sameToOutline || g_setting.sameToTag)) {
+        document.addEventListener('keydown', bindKeyDownEvent.bind(this));              
+    }
+
+    // 绑定tag行为
+    document.querySelectorAll(tagQuery).forEach((elem)=>{
+        elem.removeEventListener(clickEventBindEventType, trueClickActor, true);
+    });
+
+    if (g_setting.sameToTag && !removeMode) {
+        document.querySelectorAll(tagQuery).forEach((elem)=>{
+            elem.addEventListener(clickEventBindEventType, trueClickActor, true);
+        })
+    }
+    
+
+    // 对话框监视
+    g_bodyObserver.disconnect();
+    if (g_setting.applyToDialog && !removeMode) {
+        g_bodyObserver.observe(document.body, {childList: true, subtree: false, attribute: false});
     }
 }
+function bindKeyDownEvent(event) {
+    // 判断是否按下了 Alt 键，并且同时按下了 O 键
+    const that = this;
+    if (isShortcutMatch(event, window.siyuan.config.keymap.editor.general.outline.custom ?? "⌥O")
+    || isShortcutMatch(event, window.siyuan.config.keymap.general.outline.custom)
+    || isShortcutMatch(event, window.siyuan.config.keymap.general.tag.custom)
+    || isShortcutMatch(event, window.siyuan.config.keymap.general.fileTree.custom)) {
+        // 在这里执行按下 Alt + O 键的逻辑
+        debugPush("按下ALt+O");
+        setTimeout(()=>{
+            bindBasicEventHandler(); 
+        }, 300);      
+    }
+}
+function bindClickDockEvent(removeMode = false) {
+    const queryResult = document.querySelectorAll(`.dock span[data-type="tag"], .dock span[data-type="file"], .dock span[data-type="outline"]`);
+    const that = this;
+    queryResult.forEach((elem)=>{
+        if (removeMode) {
+            elem.removeEventListener("click", clickDockHandler);
+        } else {
+            elem.addEventListener("click", clickDockHandler);
+        }
+    });
+}
+function clickDockHandler() {
+    debugPush("按下侧栏按钮");
+    setTimeout(bindBasicEventHandler, 30); 
+}
 
-
+// 入口绑定结束
 
 // debug push
 let g_DEBUG = 2;
