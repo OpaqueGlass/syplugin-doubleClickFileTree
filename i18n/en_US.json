@@ -26,11 +26,34 @@
   "setting_enableMobile_desp": "",
   "setting_sameToTag_name": "🧪The same applies to the tag panel.",
   "setting_sameToTag_desp": "After enabling this feature, the aforementioned logic will be applied to the tag panel as well. ",
+  "setting_lastModifyBlockHint_name": "🧪Last Modified Block Hint",
+  "setting_lastModifyBlockHint_desp": "Provides a hint of the last recorded clicked block position when opening a document. This feature is only meaningful when the 'Do Not Navigate to Last Edited Position' option is enabled.",
 
   "setting_aboutAuthor_name": "About",
   "setting_aboutAuthor_desp": "Translator: GPT3.5 @ February 23, 2024<br/>Developer: <a target='_blank' href='https://github.com/OpaqueGlass'>OpaqueGlass</a>;<br/>Git repo: <a target='_blank' href='https://github.com/OpaqueGlass/syplugin-doubleClickFileTree'>github</a>;<br/>Released under <a target='_blank' href='https://www.gnu.org/licenses/agpl-3.0.html'>AGPLv3</a> license;",
 
 
   "setting_experimental": "(Experimental Feature. UNSTABLE. May be removed at any time) ",
-  "error_initFailed": "Double-click-file-tree (File tree enhance) Plugin initialization failed, please report this issue to developer at your convenience"
+  "error_initFailed": "Double-click-file-tree (File tree enhance) Plugin initialization failed, please report this issue to developer at your convenience",
+
+  
+  "timed_less_than_a_minute": "less than a minute",
+  "timed_1_minute": "1 minute",
+  "timed_several_min": "%% minutes",
+  "timed_about_1_hour": "about 1 hour",
+  "timed_about_hours": "about %% hours",
+  "timed_1_day": "1 day",
+  "timed_days": "%% days",
+  "timed_about_1_month": "about 1 month",
+  "timed_about_2_months": "about 2 months",
+  "timed_months": "%% months",
+  "timed_about_1_year": "about 1 year",
+  "timed_over_1_year": "over 1 year",
+  "timed_almost_2_years": "almost 2 years",
+  "timed_about_years": "about %% years",
+  "timed_over_years": "over %% years",
+  "timed_almost_years": "almost %% years",
+
+  "last_modify_point_welcome": "Welcome back, your last read/edit was %% ago.",
+  "button_goto_last_modify_point": "Go to last position"
 }

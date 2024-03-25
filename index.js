@@ -55,6 +55,7 @@ let g_recentClickedId = null;
 let g_recentClickCheckTimeout = null; // 等待重新判定timeout
 let g_isPluginClickToggle = false;
 let g_isPluginRawClickItem = false;
+let g_lastPopupReadTime = null;
 let g_setting = {
     dblclickShowSubDoc: null,
     dblclickDelay: null,
@@ -64,6 +65,10 @@ let g_setting = {
     extendClickArea: null,
     unfoldSubDocsWhileOpenParent: null,
     openToTop: null,
+    lastModifyBlockHint: null,
+    ignoreModifyHintIds: "",
+    ignoreModifyHintIdsArray: [],
+    ignoreModifyHintPathLikeArray: [],
     applyToDialog: null,
     enableMobile: null,
     sameToTag: null,
@@ -77,6 +82,8 @@ let g_setting_default = {
     extendClickArea: false,
     unfoldSubDocsWhileOpenParent: false,
     openToTop: false,
+    lastModifyBlockHint: false,
+    ignoreModifyHintIds: "",
     applyToDialog: false,
     enableMobile: false,
     sameToTag: false,
@@ -126,6 +133,8 @@ class DoubleClickFileTreePlugin extends siyuan.Plugin {
                 // let settingData = JSON.parse(settingCache);
                 Object.assign(g_setting, settingCache);
                 bindBasicEventHandler();
+                this.eventBusInnerHandler();
+                getIgnoreList();
             }catch(e){
                 warnPush("DBT载入配置时发生错误",e);
             }
@@ -175,6 +184,9 @@ class DoubleClickFileTreePlugin extends siyuan.Plugin {
             setStyle();
             try {
                 bindBasicEventHandler(); 
+                this.eventBusInnerHandler();
+                // 解析 ignoreModifyHintIds
+                getIgnoreList();
             }catch(err){
                 console.error("og eventBusError", err);
             }
@@ -198,8 +210,10 @@ class DoubleClickFileTreePlugin extends siyuan.Plugin {
             new SettingProperty("sameToOutline", "SWITCH", null),
             new SettingProperty("sameToTag", "SWITCH", null),
             new SettingProperty("openToTop", "SWITCH", null),
+            new SettingProperty("lastModifyBlockHint", "SWITCH", null),
             new SettingProperty("applyToDialog", "SWITCH", null),
             new SettingProperty("enableMobile", "SWITCH", null),
+            new SettingProperty("ignoreModifyHintIds", "TEXTAREA", null),
             new SettingProperty("aboutAuthor", "HINT", null),
         ]);
 
@@ -207,7 +221,44 @@ class DoubleClickFileTreePlugin extends siyuan.Plugin {
         settingDialog.element.querySelector(`#${CONSTANTS.PLUGIN_NAME}-form-content`).appendChild(hello);
     }
 
+    eventBusInnerHandler() {
+        if (g_setting.lastModifyBlockHint) {
+            this.eventBus.on("click-editorcontent", saveRecentClickBlockId);
+            this.eventBus.on("loaded-protyle-static", openRecentClockBlockHint);
+        } else {
+            this.eventBus.off("click-editorcontent", saveRecentClickBlockId);
+            this.eventBus.off("loaded-protyle-static", openRecentClockBlockHint);
+        }
+        
+    }
     
+}
+
+function getIgnoreList() {
+    if (g_setting.ignoreModifyHintIds) {
+        g_setting.ignoreModifyHintPathLikeArray = [];
+        g_setting.ignoreModifyHintIdsArray = [];
+        g_setting.ignoreModifyHintIds.split(",").forEach((elem)=>{
+            elem = elem.trim();
+            if (elem.endsWith("/")) {
+                g_setting.ignoreModifyHintPathLikeArray.push(elem);
+            } else {
+                g_setting.ignoreModifyHintIdsArray.push(elem);
+            }
+        });
+    }
+}
+
+function isIgnoreDoc(docId, docPath) {
+    if (g_setting.ignoreModifyHintIdsArray.includes(docId)) {
+        return true;
+    }
+    for (let i = 0; i < g_setting.ignoreModifyHintPathLikeArray.length; i++) {
+        if (docPath.includes(g_setting.ignoreModifyHintPathLikeArray[i])) {
+            return true;
+        }
+    }
+    return false;
 }
 // 入口绑定开始
 
@@ -229,6 +280,8 @@ function bindBasicEventHandler(removeMode = false) {
     let clickEventBindEventType = "click";
     if (backend == "ios" && frontend == "desktop") {
         errorPush("插件暂未解决iPadOS上的使用问题，在iPadOS上，插件将不绑定任何行为");
+        // document.querySelector(fileTreeQuery)?.addEventListener(clickEventBindEventType, preventClickHander, false);
+        // clickEventBindEventType = "mouseup";
         return;
     }
     let useCapture = true;
@@ -242,12 +295,18 @@ function bindBasicEventHandler(removeMode = false) {
     // 绑定点开docker行为
     document.querySelectorAll(outlineQuery).forEach((elem)=>{
         elem.removeEventListener(clickEventBindEventType, openDocActor, true);
+        elem.removeEventListener(clickEventBindEventType, preventOutlineModifyPointHintHandler, true);
     });
     if (g_setting.sameToOutline && !removeMode) {
         document.querySelectorAll(outlineQuery).forEach((elem)=>{
-            elem.removeEventListener(clickEventBindEventType, openDocActor, true);
             elem.addEventListener(clickEventBindEventType, openDocActor, true);
-        })
+        });
+    }
+    // 编辑点提示
+    if (g_setting.lastModifyBlockHint && !removeMode) {
+        document.querySelectorAll(outlineQuery).forEach((elem)=>{
+            elem.addEventListener(clickEventBindEventType, preventOutlineModifyPointHintHandler, true);
+        });
     }
 
     // 快捷键打开响应
@@ -264,7 +323,7 @@ function bindBasicEventHandler(removeMode = false) {
     if (g_setting.sameToTag && !removeMode) {
         document.querySelectorAll(tagQuery).forEach((elem)=>{
             elem.addEventListener(clickEventBindEventType, trueClickActor, true);
-        })
+        });
     }
     
 
@@ -273,6 +332,9 @@ function bindBasicEventHandler(removeMode = false) {
     if (g_setting.applyToDialog && !removeMode) {
         g_bodyObserver.observe(document.body, {childList: true, subtree: false, attribute: false});
     }
+}
+function preventOutlineModifyPointHintHandler() {
+    g_lastPopupReadTime = new Date();
 }
 function bindKeyDownEvent(event) {
     // 判断是否按下了 Alt 键，并且同时按下了 O 键
@@ -397,6 +459,7 @@ class SettingProperty {
     }
 }
 
+/* 点击行为处理 */
 
 function initRetry() {
     if (!document.querySelector(".sy__file")) {
@@ -551,6 +614,8 @@ function clickFileTreeHandler(openActionType, event) {
             event.preventDefault();
             event.stopPropagation();
             event.stopImmediatePropagation();
+        } else {
+            debugPush("二次点击未做点击拦截");
         }
     }    
 }
@@ -617,7 +682,7 @@ function singleClickOpenDocHandler(event) {
         return;
     }
     debugPush("由 单击打开 处理", sourceElem);
-    openDocByTreeItemElement(sourceElem);
+    return openDocByTreeItemElement(sourceElem);
 }
 
 function singleClickUnfoldHandler(event) {
@@ -641,7 +706,7 @@ function singleClickUnfoldHandler(event) {
 
 function doubleClickHandler(event, openActionType) {
     if (g_setting.revertBehavior) {
-        clickToOpenMulitWayDistributor(event, openActionType);
+        return clickToOpenMulitWayDistributor(event, openActionType);
     } else {
         return doubleClickUnfoldHandler(event);
     }
@@ -727,11 +792,12 @@ function openDocByTreeItemElement(sourceElem) {
             }
             // 打开文档
             if (!isMobile()) {
+                debugPush("OPENTAB", new Date().getTime());
                 siyuan.openTab({
                     app: g_app,
                     doc: {
                         id: targetNodeId,
-                        action: souceType == FILE_TREE && g_setting.openToTop ? ["cb-get-focus"] : ["cb-get-focus", "cb-get-scroll"]
+                        action: souceType == FILE_TREE && g_setting.openToTop ? undefined : ["cb-get-focus", "cb-get-scroll"]
                     }
                 }).catch((err)=>{
                     errorPush("打开文档时发生错误", err);
@@ -798,14 +864,120 @@ function getSourceSpanElement(elem) {
     return isFound ? ftItemElem : null;
 }
 
-function bindHandlerForDialog() {
-    debugPush("BIND HANDLER FOR DIALOG");
-    if (window.siyuan.dialogs && window.siyuan.dialogs.length > 0) {
-        for (const dialogObject of window.siyuan.dialogs) {
-            if (["dialog-movepathto"].includes(dialogObject.element.dataset["key"])) {
-                dialogObject.element.removeEventListener("click", rawClickActor, true);
-                dialogObject.element.addEventListener("click", rawClickActor, true);
+/* 单双击处理结束 */
+
+async function saveRecentClickBlockId(event) {
+    logPush("保存点击id", event);
+    const mouseevent = event.detail.event;
+    const protyle = event.detail.protyle;
+    const eventTarget = getSourceNode(mouseevent.srcElement);
+    const docId = protyle.block.rootID;
+    const currentBlockId = eventTarget?.dataset?.nodeId;
+    logPush("点击id", currentBlockId, "文档id", docId);
+    if (isValidStr(currentBlockId) && isValidStr(docId)) {
+        if (isIgnoreDoc(docId, protyle.path)) {
+            logPush("记录时，在忽略列表，不处理");
+            return;
+        }
+        let saveDetail = {
+            "time": new Date().getTime(),
+            "blockId": currentBlockId,
+        }
+        const saveData = JSON.stringify(saveDetail);
+        await addblockAttrAPI({"custom-og-last-click": saveData}, docId);
+    }
+    // 写入当前时间
+    // 写入id
+    // 写入到文档ial
+
+    function getSourceNode(element) {
+        let block = element;
+        while (block != null && block.dataset.nodeId == null) block = block.parentElement;
+        return block;
+    }
+}
+
+async function openRecentClockBlockHint(event) {
+    const protyle = event.detail.protyle;
+    const docId = protyle.block.rootID;
+    // 读取background ial
+    logPush("文档ial", protyle.background.ial["custom-og-last-click"], protyle);
+    const ialStr = protyle?.background?.ial["custom-og-last-click"];
+    if (protyle.model == null) {
+        logPush("非文档树打开，不处理");
+        return;
+    }
+    if (isIgnoreDoc(docId, protyle.path)) {
+        logPush("在忽略列表，不处理");
+        return;
+    }
+    // protyle.element.querySelector(".b3-tooltips.b3-tooltips__w.protyle-scroll__up").click();
+    if (isValidStr(ialStr)) {
+        const ial = JSON.parse(ialStr);
+        const blockId = ial.blockId;
+        const durationStr = getTimeDistanceString(ial.time);
+        if (g_lastPopupReadTime != null) {
+            if (getTimeDistanceAbsSeconds(g_lastPopupReadTime, new Date()) < 5) {
+                logPush("短时反复触发，忽略")
+                return;
             }
+        }
+        siyuan.showMessage(`${language["last_modify_point_welcome"].replace("%%", durationStr)}<button class="b3-button b3-button--white" data-og-block-id="${blockId}" data-og-id="backToHistory">${language["button_goto_last_modify_point"]}</button>`);
+                g_lastPopupReadTime = new Date();
+        setTimeout(()=>{
+            document.querySelectorAll("button[data-og-id='backToHistory']").forEach((elem)=>{
+                elem.addEventListener("click", openRefLink.bind(null, null, elem.getAttribute("data-og-block-id")));
+            })
+        }, 50);
+        setTimeout(()=>{
+            addblockAttrAPI({"custom-og-last-click": ""}, docId);
+        }, 10000);
+    }
+}
+
+function getTimeDistanceAbsSeconds(date, date2) {
+    return Math.abs(date - date2) / 1000;
+}
+
+function getTimeDistanceString(date) {
+    const now = new Date();
+    const diff = Math.abs(now - date) / 1000; // 时间差，单位为秒
+
+    if (diff <= 30) {
+        return language["timed_less_than_a_minute"];
+    } else if (diff <= 90) {
+        return language["timed_1_minute"];
+    } else if (diff <= 2670) {
+        return language["timed_several_min"].replace("%%", Math.round(diff / 60));
+    } else if (diff <= 5370) {
+        return language["timed_about_1_hour"];
+    } else if (diff <= 86370) {
+        return language["timed_about_hours"].replace("%%", Math.round(diff / 3600));
+    } else if (diff <= 1514700) {
+        return language["timed_1_day"];
+    } else if (diff <= 2555970) {
+        return language["timed_days"].replace("%%", Math.round(diff / 86400));
+    } else if (diff <= 37223700) {
+        return language["timed_about_1_month"];
+    } else if (diff <= 53965700) {
+        return language["timed_about_2_months"];
+    } else if (diff <= 290304000) {
+        return language["timed_months"].replace("%%", Math.round(diff / 2592000));
+    } else if (diff <= 341827200) {
+        return language["timed_about_1_year"];
+    } else if (diff <= 473385600) {
+        return language["timed_over_1_year"];
+    } else if (diff <= 577252800) {
+        return language["timed_almost_2_years"];
+    } else {
+        const years = Math.floor(diff / 31557600);
+        const months = Math.round((diff % 31557600) / 2629800);
+        if (months < 3) {
+            return language["timed_about_years"].replace("%%", years);
+        } else if (months < 9) {
+            return language["timed_over_years"].replace("%%", years);
+        } else {
+            return language["timed_almost_years"].replace("%%", years + 1);
         }
     }
 }
@@ -866,6 +1038,16 @@ function getFocusedBlockId() {
         return null;
     }
     return focusedBlock.dataset.nodeId;
+}
+
+async function addblockAttrAPI(attrs, blockid){
+    let url = "/api/attr/setBlockAttrs";
+    let attr = {
+        id: blockid,
+        attrs: attrs
+    }
+    let result = await request(url, attr);
+    return parseBody(result);
 }
 
 
@@ -962,28 +1144,56 @@ function sleep(time){
  * @license 木兰宽松许可证
  * @param {点击事件} event 
  */
-let openRefLink = function(event, paramId = ""){
-    
-    let 主界面= window.parent.document
-    let id = event?.currentTarget?.getAttribute("data-id") ?? paramId;
+function openRefLink(event, paramId = "", keyParam = undefined, protyleElem = undefined, openInFocus = false){
+    let syMainWndDocument= window.parent.document
+    let id;
+    if (event && (event.currentTarget)?.getAttribute("data-node-id")) {
+        id = (event.currentTarget)?.getAttribute("data-node-id");
+    } else if ((event?.currentTarget)?.getAttribute("data-id")) {
+        id = (event.currentTarget)?.getAttribute("data-id");
+    } else {
+        id = paramId;
+    }
     // 处理笔记本等无法跳转的情况
     if (!isValidStr(id)) {return;}
     event?.preventDefault();
     event?.stopPropagation();
-    let 虚拟链接 =  主界面.createElement("span")
-    虚拟链接.setAttribute("data-type","block-ref")
-    虚拟链接.setAttribute("data-id",id)
-    虚拟链接.style.display = "none";//不显示虚拟链接，防止视觉干扰
-    let 临时目标 = 主界面.querySelector(".protyle-wysiwyg div[data-node-id] div[contenteditable]")
-    临时目标.appendChild(虚拟链接);
+    debugPush("openRefLinkEvent", event);
+    let simulateLink =  syMainWndDocument.createElement("span")
+    simulateLink.setAttribute("data-type","a")
+    simulateLink.setAttribute("data-href", "siyuan://blocks/" + id)
+    simulateLink.style.display = "none";//不显示虚拟链接，防止视觉干扰
+    let tempTarget = null;
+    // 如果提供了目标protyle，在其中插入
+    if (protyleElem && !openInFocus) {
+        tempTarget = protyleElem.querySelector(".protyle-wysiwyg div[data-node-id] div[contenteditable]") ?? protyleElem;
+        debugPush("openRefLink使用提供窗口", tempTarget);
+    }
+    debugPush("openInFocus?", openInFocus);
+    if (openInFocus) {
+        // 先确定Tab
+        const dataId = syMainWndDocument.querySelector(".layout__wnd--active .layout-tab-bar .item--focus")?.getAttribute("data-id");
+        debugPush("openRefLink尝试使用聚焦窗口", dataId);
+        // 再确定Protyle
+        if (isValidStr(dataId)) {
+            tempTarget = window.document.querySelector(`.fn__flex-1.protyle[data-id='${dataId}']
+            .protyle-wysiwyg div[data-node-id] div[contenteditable]`);
+            debugPush("openRefLink使用聚焦窗口", tempTarget);
+        }
+    }
+    if (!isValidStr(tempTarget)) {
+        tempTarget = syMainWndDocument.querySelector(".protyle-wysiwyg div[data-node-id] div[contenteditable]");
+        debugPush("openRefLink未能找到指定窗口，更改为原状态");
+    }
+    tempTarget.appendChild(simulateLink);
     let clickEvent = new MouseEvent("click", {
-        ctrlKey: event?.ctrlKey,
-        shiftKey: event?.shiftKey,
-        altKey: event?.altKey,
+        ctrlKey: event?.ctrlKey ?? keyParam?.ctrlKey,
+        shiftKey: event?.shiftKey ?? keyParam?.shiftKey,
+        altKey: event?.altKey ?? keyParam?.altKey,
         bubbles: true
     });
-    虚拟链接.dispatchEvent(clickEvent);
-    虚拟链接.remove();
+    simulateLink.dispatchEvent(clickEvent);
+    simulateLink.remove();
 }
 
 function isValidStr(s){

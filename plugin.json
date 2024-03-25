@@ -10,7 +10,7 @@
   },
   "description": {
     "default": "Double-click to expand the next level or double-click to open the document.",
-    "zh_CN": "双击展开下一层级，或双击打开文档",
+    "zh_CN": "双击展开下一层级，或双击打开文档；（测试中功能：对大纲、标签、移动端的单双击处理）",
     "en_US": "Double-click to expand the next level or double-click to open the document."
   },
   "readme": {
