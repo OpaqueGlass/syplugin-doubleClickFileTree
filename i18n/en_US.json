@@ -28,6 +28,8 @@
   "setting_sameToTag_desp": "After enabling this feature, the aforementioned logic will be applied to the tag panel as well. ",
   "setting_lastModifyBlockHint_name": "🧪Last Modified Block Hint",
   "setting_lastModifyBlockHint_desp": "Provides a hint of the last recorded clicked block position when opening a document. This feature is only meaningful when the 'Do Not Navigate to Last Edited Position' option is enabled.",
+  "setting_ignoreModifyHintIds_name": "🧪Ignore the document ID for the last modified block hint.",
+  "setting_ignoreModifyHintIds_desp": "Please fill in the document IDs here, separated by commas. These documents will not display the last modified block hint. To block sub-documents, use the parent document ID followed by a slash (/).",
 
   "setting_aboutAuthor_name": "About",
   "setting_aboutAuthor_desp": "Translator: GPT3.5 @ February 23, 2024<br/>Developer: <a target='_blank' href='https://github.com/OpaqueGlass'>OpaqueGlass</a>;<br/>Git repo: <a target='_blank' href='https://github.com/OpaqueGlass/syplugin-doubleClickFileTree'>github</a>;<br/>Released under <a target='_blank' href='https://www.gnu.org/licenses/agpl-3.0.html'>AGPLv3</a> license;",

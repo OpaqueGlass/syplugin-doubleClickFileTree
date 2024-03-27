@@ -28,6 +28,8 @@
     "setting_sameToTag_desp": "启用本功能后，上述逻辑将应用于标签面板；",
     "setting_lastModifyBlockHint_name": "🧪上次编辑（阅读）位置提示",
     "setting_lastModifyBlockHint_desp": "在打开文档时，提示上次记录的点击块位置。只在启用“打开文档后不跳转”后，此功能才具有实际意义。",
+    "setting_ignoreModifyHintIds_name": "🧪忽略上次编辑位置提示的文档ID",
+    "setting_ignoreModifyHintIds_desp": "在这里填写文档ID，用英文逗号分隔，这些文档将不会提示上次编辑位置。如要屏蔽子文档，需要使用父文档id后加<code>/</code>的形式",
 
     "setting_aboutAuthor_name": "关于",
     "setting_aboutAuthor_desp": "作者：<a target='_blank' href='https://github.com/OpaqueGlass'>OpaqueGlass</a>；<br/>问题反馈&赞助支持：<a target='_blank' href='https://github.com/OpaqueGlass/syplugin-doubleClickFileTree'>github</a> 或 <a target='_blank' href='https://wj.qq.com/s2/12395364/b69f/'>填写问卷</a>；<br/>插件基于<a target='_blank' href='https://www.gnu.org/licenses/agpl-3.0.html'>AGPLv3</a>授权使用；",
