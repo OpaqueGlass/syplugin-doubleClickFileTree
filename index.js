@@ -135,6 +135,7 @@ class DoubleClickFileTreePlugin extends siyuan.Plugin {
                 bindBasicEventHandler();
                 this.eventBusInnerHandler();
                 getIgnoreList();
+                setStyle();
             }catch(e){
                 warnPush("DBT载入配置时发生错误",e);
             }
@@ -187,6 +188,7 @@ class DoubleClickFileTreePlugin extends siyuan.Plugin {
                 this.eventBusInnerHandler();
                 // 解析 ignoreModifyHintIds
                 getIgnoreList();
+                setStyle();
             }catch(err){
                 console.error("og eventBusError", err);
             }
@@ -983,13 +985,17 @@ function getTimeDistanceString(date) {
 }
 
 function setStyle() {
+    removeStyle();
     const head = document.getElementsByTagName('head')[0];
     const style = document.createElement('style');
     style.setAttribute("id", CONSTANTS.STYLE_ID);
     
-
+    const preventHover = g_setting.disableChangeIcon ? `
+    .sy__file [data-type="navigation-file"] .b3-list-item__icon.b3-tooltips.b3-tooltips__n[aria-label="${window.siyuan.languages.changeIcon}"] {
+        pointer-events: none;
+    }` : "";
     style.innerHTML = `
-
+    ${preventHover}
     `;
     head.appendChild(style);
 }
