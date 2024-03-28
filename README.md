@@ -26,4 +26,5 @@ Please go to [github repository](https://github.com/OpaqueGlass/syplugin-doubleC
 
 | Developer/Project                                            | Description                                                  | Illustration                                                 |
 | ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
-| N/A | N/A | N/A |
+| [zxkmm](https://github.com/zxkmm)/[doctree modify](https://github.com/zxkmm/siyuan_doctree_compress) | provides up to 20 functions, including flow layout/ indentation adjustment/ hide bubble/ shield button/ font size/ mouse hover, etc., to completely customize your document tree / [MIT License](https://github.com/zxkmm/siyuan_doctree_compress#MIT-1-ov-file) | CSS codes to disable the tooltips for the document tree icon |
+| [QQQOrange](https://github.com/QQQOrange) | N/A | Participate in the test and/or provide constructive feedback |
