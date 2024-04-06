@@ -481,6 +481,7 @@ function preventClickHander(event) {
         debugPush("伴随ctrl/shift/alt按下，终止操作");
         return;
     }
+    // TODO: metaKey屏蔽
     if (!g_setting.disableChangeIcon && event.srcElement.classList.contains("b3-list-item__icon")) {
         debugPush("点击的是图标，终止操作");
         return;
@@ -522,6 +523,10 @@ function clickFileTreeHandler(openActionType, event) {
     }
     if (event.ctrlKey || event.shiftKey || event.altKey) {
         debugPush("伴随ctrl/shift/alt按下，终止操作");
+        return;
+    }
+    if (event.metaKey) {
+        debugPush("伴随meta按下，终止操作");
         return;
     }
     if (!g_setting.disableChangeIcon && event.srcElement.classList.contains("b3-list-item__icon")) {
