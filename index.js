@@ -540,8 +540,13 @@ function clickFileTreeHandler(openActionType, event) {
     }
     if (event.srcElement.classList.contains("b3-list-item__toggle") || ["svg", "use"].includes(event.srcElement.tagName)) {
         const sourceElem = getSourceSpanElement(event.srcElement);
+        debugPush("判定跳出用", sourceElem);
         if (sourceElem == null) {
             debugPush("sourceElem未找到，未知情况，不处理", event.srcElement);
+            return;
+        }
+        if (sourceElem.contains("b3-list-item__action")) {
+            debugPush("列表操作项，不处理", event.srcElement);
             return;
         }
         if (["more-file", "more-root", "new"].includes(sourceElem.getAttribute("data-type"))) {
