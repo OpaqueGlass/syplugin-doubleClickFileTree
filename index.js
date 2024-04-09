@@ -115,7 +115,6 @@ class DoubleClickFileTreePlugin extends siyuan.Plugin {
                         // dialogObject.element.removeEventListener("click", rawClickActor, true);
                         if (this.backend == "ios" && this.frontend == "desktop") {
                             addedNode.addEventListener("mouseup", rawClickActor, true);
-                            addedNode.addEventListener("click", preventClickHander, true);
                         } else {
                             addedNode.addEventListener("click", rawClickActor, true);
                         }
@@ -470,7 +469,7 @@ function initRetry() {
     }
     document.querySelector('.sy__file')?.addEventListener('click', clickFileTreeHandler, true);
 }
-
+/*
 function preventClickHander(event) {
     const debugPush = siyuan.showMessage;
     if (event.button != 0) {
@@ -486,8 +485,9 @@ function preventClickHander(event) {
         debugPush("点击的是图标，终止操作");
         return;
     }
-    if (event.srcElement.classList.contains("b3-list-item__toggle") || ["svg", "use"].includes(event.srcElement.tagName)) {
+    if (event.srcElement.classList.contains("b3-list-item__toggle") || ["svg", "use"].includes(event.srcElement.tagName) || event.srcElement.classList.contains("b3-list-item__action")) {
         const sourceElem = getSourceSpanElement(event.srcElement);
+        debugPush("sourceElem", sourceElem);
         if (sourceElem == null) {
             debugPush("sourceElem未找到，未知情况，不处理", event.srcElement);
             return;
@@ -510,6 +510,7 @@ function preventClickHander(event) {
     event.stopPropagation();
     event.preventDefault();
 }
+*/
 
 /**
  * 点击文档树事件处理
@@ -531,6 +532,10 @@ function clickFileTreeHandler(openActionType, event) {
     }
     if (!g_setting.disableChangeIcon && event.srcElement.classList.contains("b3-list-item__icon")) {
         debugPush("点击的是图标，终止操作");
+        return;
+    }
+    if (event.srcElement.classList.contains("b3-list-item__action")) {
+        debugPush("列表操作项，不处理", event.srcElement);
         return;
     }
     if (event.srcElement.classList.contains("b3-list-item__toggle") || ["svg", "use"].includes(event.srcElement.tagName)) {
@@ -577,7 +582,12 @@ function clickFileTreeHandler(openActionType, event) {
         // TODO: 这个判断有点问题，等下重新想一下navigation-root
         // 没有对应id  并且   （不是开头 或  不是大纲）
         // 大概  换成 如果是笔记本 ，就跳这个
-        if (!isValidStr(g_recentClickedId) && (sourceElem?.getAttribute("data-type") == "navigation-root" || sourceElem?.getAttribute("data-path") == undefined)
+        if (sourceElem?.getAttribute("data-type") == "navigation-root") {
+            debugPush("单击：点击了笔记本层");
+            return;
+        }
+        if (!isValidStr(g_recentClickedId) 
+        && (sourceElem?.getAttribute("data-type") == "navigation-root" || sourceElem?.getAttribute("data-path") == undefined)
         && !(sourceElem?.getAttribute("data-treetype") == "tag") ) {
             debugPush("点击的元素不是文件，终止操作");
             g_isRecentClicked = 0;
@@ -616,6 +626,14 @@ function clickFileTreeHandler(openActionType, event) {
         debugPush("二次点击");
         clearTimeout(g_recentClickCheckTimeout);
         g_isRecentClicked = 0;
+        const sourceElem = getSourceItemElement(event);
+        if (sourceElem?.getAttribute("data-type") == "navigation-root") {
+            debugPush("双击：点击了笔记本层，操作屏蔽");
+            event.preventDefault();
+            event.stopPropagation();
+            event.stopImmediatePropagation();
+            return;
+        }
         if (doubleClickHandler(event, openActionType)) {
             g_recentClickedId = null;
             event.preventDefault();
