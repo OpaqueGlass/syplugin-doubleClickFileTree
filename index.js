@@ -931,7 +931,7 @@ async function openRecentClockBlockHint(event) {
     const protyle = event.detail.protyle;
     const docId = protyle.block.rootID;
     // 读取background ial
-    logPush("文档ial", protyle.background.ial["custom-og-last-click"], protyle);
+    logPush("文档ial", protyle.background?.ial["custom-og-last-click"], protyle);
     const ialStr = protyle?.background?.ial["custom-og-last-click"];
     if (protyle.model == null) {
         logPush("非文档树打开，不处理");
