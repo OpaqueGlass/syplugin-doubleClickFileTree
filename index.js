@@ -546,7 +546,7 @@ function clickFileTreeHandler(openActionType, event) {
             debugPush("sourceElem未找到，未知情况，不处理", event.srcElement);
             return;
         }
-        if (sourceElem.contains("b3-list-item__action")) {
+        if (sourceElem.classList.contains("b3-list-item__action")) {
             debugPush("列表操作项，不处理", event.srcElement);
             return;
         }
