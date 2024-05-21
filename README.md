@@ -5,6 +5,8 @@
 > Most of this document was translated by Google Translate.
 >
 > This plugin does not have full English support yet.
+>
+> Please update to v0.3.3 and above as soon as possible
 
 The plugin is used to modify the double-click behavior of the left mouse button in the document tree in Siyuan Note.
 
