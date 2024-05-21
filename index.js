@@ -43,6 +43,10 @@ const CONSTANTS = {
     ACTION_OPEN_DOC: 0,
     ACTION_RAW_CLICK: 1,
     ACTION_TRUE_CLICK: 2,
+
+    OPEN_WITCH_UNFOLD_OFF: 0,
+    OPEN_WITCH_UNFOLD_ON: 1,
+    OPEN_WITCH_UNFOLD_NO_FOLD: 2, 
 }
 const openDocActor = clickFileTreeHandler.bind(this, CONSTANTS.ACTION_OPEN_DOC);
 const rawClickActor = clickFileTreeHandler.bind(this, CONSTANTS.ACTION_RAW_CLICK);
@@ -81,7 +85,7 @@ let g_setting_default = {
     disableChangeIcon: true,
     sameToOutline: false,
     extendClickArea: false,
-    unfoldSubDocsWhileOpenParent: false,
+    unfoldSubDocsWhileOpenParent: CONSTANTS.OPEN_WITCH_UNFOLD_OFF,
     openToTop: false,
     lastModifyBlockHint: false,
     ignoreModifyHintIds: "",
@@ -131,6 +135,15 @@ class DoubleClickFileTreePlugin extends siyuan.Plugin {
             // 解析并载入配置
             try {
                 // let settingData = JSON.parse(settingCache);
+                // 打开同时展开设置项迁移
+                if (settingCache && settingCache.unfoldSubDocsWhileOpenParent !== undefined) {
+                    if (settingCache.unfoldSubDocsWhileOpenParent === false) {
+                        settingCache.unfoldSubDocsWhileOpenParent = CONSTANTS.OPEN_WITCH_UNFOLD_OFF;
+                    } else if (settingCache.unfoldSubDocsWhileOpenParent === true) {
+                        settingCache.unfoldSubDocsWhileOpenParent = CONSTANTS.OPEN_WITCH_UNFOLD_ON;
+                    }
+                }
+                
                 Object.assign(g_setting, settingCache);
                 bindBasicEventHandler();
                 this.eventBusInnerHandler();
@@ -207,7 +220,7 @@ class DoubleClickFileTreePlugin extends siyuan.Plugin {
             new SettingProperty("dblclickDelay", "NUMBER", [50, 1200]),
             new SettingProperty("revertBehavior", "SWITCH", null),
             new SettingProperty("disableChangeIcon", "SWITCH", null),
-            new SettingProperty("unfoldSubDocsWhileOpenParent", "SWITCH", null),
+            new SettingProperty("unfoldSubDocsWhileOpenParent", "SELECT",[{value: 0}, {value: 1}, {value: 2}]),
             new SettingProperty("extendClickArea", "SWITCH", null),
             new SettingProperty("sameToOutline", "SWITCH", null),
             new SettingProperty("sameToTag", "SWITCH", null),
@@ -816,10 +829,16 @@ function openDocByTreeItemElement(sourceElem) {
             sourceElem.classList.add("b3-list-item--focus");
             // 展开子层级
             // 请注意：这里没有判定是否已经展开，如果已经展开，则会收起；先展开而后打开文档是为了保持文档具有焦点，看情况可能需要更改
-            if (g_setting.unfoldSubDocsWhileOpenParent) {
+            if (g_setting.unfoldSubDocsWhileOpenParent != CONSTANTS.OPEN_WITCH_UNFOLD_OFF) {
                 const b3ListItemToggle = sourceElem.querySelector('.b3-list-item__toggle');
-                g_isPluginClickToggle = true;
-                b3ListItemToggle.click();
+                const child = b3ListItemToggle.querySelector(".b3-list-item__arrow--open")
+                if (child && g_setting.unfoldSubDocsWhileOpenParent == CONSTANTS.OPEN_WITCH_UNFOLD_NO_FOLD) {
+                    debugPush("节点已经展开，根据要求不收起");
+                } else {
+                    g_isPluginClickToggle = true;
+                    b3ListItemToggle.click();
+                }
+                
             }
             // 打开文档
             if (!isMobile()) {
@@ -828,7 +847,8 @@ function openDocByTreeItemElement(sourceElem) {
                     app: g_app,
                     doc: {
                         id: targetNodeId,
-                        action: souceType == FILE_TREE && g_setting.openToTop ? undefined : ["cb-get-focus", "cb-get-scroll"]
+                        action: souceType == FILE_TREE && g_setting.openToTop ? undefined : ["cb-get-focus", "cb-get-scroll"],
+                        keepCursor: false,
                     }
                 }).catch((err)=>{
                     errorPush("打开文档时发生错误", err);
