@@ -56,6 +56,7 @@ let g_recentClickCheckTimeout = null; // 等待重新判定timeout
 let g_isPluginClickToggle = false;
 let g_isPluginRawClickItem = false;
 let g_lastPopupReadTime = null;
+let g_keyUpEventTimeout = null;
 let g_setting = {
     dblclickShowSubDoc: null,
     dblclickDelay: null,
@@ -262,7 +263,6 @@ function isIgnoreDoc(docId, docPath) {
     return false;
 }
 // 入口绑定开始
-
 function bindBasicEventHandler(removeMode = false) {
     const isMobileDevice = isMobile();
     debugPush("绑定开始");
@@ -311,9 +311,10 @@ function bindBasicEventHandler(removeMode = false) {
     }
 
     // 快捷键打开响应
-    document.removeEventListener('keydown', bindKeyDownEvent.bind(this));  
+    // !.bind this实际上是多个不同的方法
+    document.removeEventListener('keyup', bindKeyUpEvent);  
     if (!removeMode && (g_setting.sameToOutline || g_setting.sameToTag)) {
-        document.addEventListener('keydown', bindKeyDownEvent.bind(this));              
+        document.addEventListener('keyup', bindKeyUpEvent);              
     }
 
     // 绑定tag行为
@@ -337,16 +338,16 @@ function bindBasicEventHandler(removeMode = false) {
 function preventOutlineModifyPointHintHandler() {
     g_lastPopupReadTime = new Date();
 }
-function bindKeyDownEvent(event) {
+function bindKeyUpEvent(event) {
     // 判断是否按下了 Alt 键，并且同时按下了 O 键
-    const that = this;
     if (isShortcutMatch(event, window.siyuan.config.keymap.editor.general.outline.custom ?? "⌥O")
     || isShortcutMatch(event, window.siyuan.config.keymap.general.outline.custom)
     || isShortcutMatch(event, window.siyuan.config.keymap.general.tag.custom)
     || isShortcutMatch(event, window.siyuan.config.keymap.general.fileTree.custom)) {
         // 在这里执行按下 Alt + O 键的逻辑
         debugPush("按下ALt+O");
-        setTimeout(()=>{
+        clearTimeout(g_keyUpEventTimeout);
+        g_keyUpEventTimeout = setTimeout(()=>{
             bindBasicEventHandler(); 
         }, 300);      
     }
