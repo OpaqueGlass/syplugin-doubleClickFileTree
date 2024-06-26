@@ -962,6 +962,10 @@ async function openRecentClockBlockHint(event) {
         logPush("在忽略列表，不处理");
         return;
     }
+    if (protyle.option?.action.length > 0 && protyle.option.action.includes("cb-get-scroll")) {
+        logPush("本次打开包括跳转，不显示");
+        return;
+    }
     // protyle.element.querySelector(".b3-tooltips.b3-tooltips__w.protyle-scroll__up").click();
     if (isValidStr(ialStr)) {
         const ial = JSON.parse(ialStr);
