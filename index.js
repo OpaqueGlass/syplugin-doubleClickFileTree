@@ -544,7 +544,8 @@ function clickFileTreeHandler(openActionType, event) {
         debugPush("伴随meta按下，终止操作");
         return;
     }
-    if (!g_setting.disableChangeIcon && event.srcElement.classList.contains("b3-list-item__icon")) {
+    // https://developer.mozilla.org/en-US/docs/Web/API/Element/tagName DOM tagName为大写
+    if (!g_setting.disableChangeIcon && (event.srcElement.classList.contains("b3-list-item__icon") || (["IMG"].includes(event.srcElement.tagName) && event.srcElement.parentElement.classList.contains("b3-list-item__icon")) )) {
         debugPush("点击的是图标，终止操作");
         return;
     }
