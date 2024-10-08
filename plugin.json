@@ -2,7 +2,7 @@
   "name": "syplugin-doubleClickFileTree",
   "author": "OpaqueGlass",
   "url": "https://github.com/OpaqueGlass/syplugin-doubleClickFileTree",
-  "version": "0.3.4",
+  "version": "0.3.5",
   "displayName": {
     "default": "double click file tree",
     "zh_CN": "双击文档树",
