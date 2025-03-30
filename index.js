@@ -48,9 +48,9 @@ const CONSTANTS = {
     OPEN_WITCH_UNFOLD_ON: 1,
     OPEN_WITCH_UNFOLD_NO_FOLD: 2, 
 }
-const openDocActor = clickFileTreeHandler.bind(this, CONSTANTS.ACTION_OPEN_DOC);
-const rawClickActor = clickFileTreeHandler.bind(this, CONSTANTS.ACTION_RAW_CLICK);
-const trueClickActor = clickFileTreeHandler.bind(this, CONSTANTS.ACTION_TRUE_CLICK);
+const openDocActor = clickFileTreeHandler.bind(this, CONSTANTS.ACTION_OPEN_DOC, false);
+const rawClickActor = clickFileTreeHandler.bind(this, CONSTANTS.ACTION_RAW_CLICK, true);
+const trueClickActor = clickFileTreeHandler.bind(this, CONSTANTS.ACTION_TRUE_CLICK, true);
 let g_writeStorage;
 let g_isMobile = false;
 let g_app;
@@ -529,19 +529,24 @@ function preventClickHander(event) {
 /**
  * 点击文档树事件处理
  * @param {int} openActionType 对应执行逻辑：CONSTANTS.ACTION_OPEN_DOC 将调用API打开文档 
+ * @param {boolean} doNotSkipCtrlKey 为true则ctrl key时也进行处理、并不会跳过
  * @param {*} event 
  * @returns 
  */
-function clickFileTreeHandler(openActionType, event) {
+function clickFileTreeHandler(openActionType, doNotSkipCtrlKey, event) {
     if (event.button != 0) {
         debugPush('按下的按键不是左键，终止操作')
         return;
     }
-    if (event.ctrlKey || event.shiftKey || event.altKey) {
-        debugPush("伴随ctrl/shift/alt按下，终止操作");
+    if (!doNotSkipCtrlKey && isCtrlKey(event)) {
+        debugPush("伴随ctrl/meta key按下，终止操作");
         return;
     }
-    if (event.metaKey) {
+    if (event.shiftKey || event.altKey) {
+        debugPush("伴随shift/alt按下，终止操作");
+        return;
+    }
+    if (isMetaKey(event)) {
         debugPush("伴随meta按下，终止操作");
         return;
     }
@@ -695,7 +700,10 @@ function pluginClickHandler(event) {
         debugPush("sourceElem未找到");
         return false;
     }
-    if (!event.ctrlKey) {
+    const diaglogElem = document.querySelector(".b3-dialog--open");
+    const dialogType = diaglogElem.getAttribute("data-key");
+    const multiSelectBlackList = ["dialog-movepathto"];
+    if (!isCtrlKey(event) || multiSelectBlackList.includes(dialogType)) {
         document.getElementById("foldTree")?.querySelectorAll(".b3-list-item--focus").forEach((elem)=>elem.classList.remove("b3-list-item--focus"));
         document.getElementById("foldList")?.querySelectorAll(".b3-list-item--focus").forEach((elem)=>elem.classList.remove("b3-list-item--focus"));
     }
@@ -721,7 +729,7 @@ function pluginTrueClickHandler(event) {
         debugPush("sourceElem未找到");
         return false;
     }
-    if (!event.ctrlKey) {
+    if (!isCtrlKey(event)) {
         document.getElementById("foldTree")?.querySelectorAll(".b3-list-item--focus").forEach((elem)=>elem.classList.remove("b3-list-item--focus"));
     }
     
@@ -1083,7 +1091,7 @@ function isShortcutMatch(event, key) {
     return shortcutKeys.every(key => {
       if (key === '⌥') return event.altKey;
       if (key === '⇧') return event.shiftKey;
-      if (key === '⌘') return event.ctrlKey;
+      if (key === '⌘') return isCtrlKey(event);
     //   if (key === '') return event.metaKey;
       return event.key.toUpperCase() === key.toUpperCase();
     });
@@ -1173,6 +1181,36 @@ async function getKramdown(blockid){
     if (response) {
         return response.kramdown;
     }
+}
+let cacheIsMacOs = undefined;
+function isMacOS() {
+    let platform = window.top.siyuan.config.system.os ?? navigator.platform ?? "ERROR";
+    platform = platform.toUpperCase();
+    let macFlag = cacheIsMacOs;
+    if (cacheIsMacOs == undefined) {
+        for (let platformName of ["DARWIN", "MAC", "IPAD", "IPHONE", "IOS"]) {
+            if (platform.includes(platformName)) {
+                macFlag = true;
+                break;
+            }
+        }
+        cacheIsMacOs = macFlag;
+    }
+    return macFlag;
+}
+
+function isCtrlKey(event) {
+    if (isMacOS()) {
+        return event.metaKey;
+    }
+    return event.ctrlKey;
+}
+
+function isMetaKey(event) {
+    if (isMacOS()) {
+        return event.ctrlKey;
+    }
+    return event.metaKey;
 }
 
 async function getCurrentDocIdF() {
