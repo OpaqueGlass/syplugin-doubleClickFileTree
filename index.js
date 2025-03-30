@@ -116,14 +116,14 @@ class DoubleClickFileTreePlugin extends siyuan.Plugin {
             for (const mutation of mutationsList) {
               if (mutation.type === 'childList') {
                 for (const addedNode of mutation.addedNodes) {
-                  if (addedNode.nodeType === 1 && addedNode.dataset["key"] === "dialog-movepathto") {
+                    if (addedNode.nodeType === 1 && addedNode.dataset["key"] === "dialog-movepathto") {
                         // dialogObject.element.removeEventListener("click", rawClickActor, true);
                         if (this.backend == "ios" && this.frontend == "desktop") {
                             addedNode.addEventListener("mouseup", rawClickActor, true);
                         } else {
                             addedNode.addEventListener("click", rawClickActor, true);
                         }
-                  }
+                    }
                 }
               }
             }
@@ -528,6 +528,7 @@ function preventClickHander(event) {
 
 /**
  * 点击文档树事件处理
+ * @param {int} openActionType 对应执行逻辑：CONSTANTS.ACTION_OPEN_DOC 将调用API打开文档 
  * @param {*} event 
  * @returns 
  */
@@ -599,9 +600,6 @@ function clickFileTreeHandler(openActionType, event) {
         const sourceElem = getSourceItemElement(event);
         g_recentClickedId = sourceElem?.getAttribute("data-node-id");
         debugPush("点击的元素与事件", event, sourceElem, g_recentClickedId);
-        // TODO: 这个判断有点问题，等下重新想一下navigation-root
-        // 没有对应id  并且   （不是开头 或  不是大纲）
-        // 大概  换成 如果是笔记本 ，就跳这个
         if (sourceElem?.getAttribute("data-type") == "navigation-root") {
             debugPush("单击：点击了笔记本层");
             return;
@@ -613,7 +611,7 @@ function clickFileTreeHandler(openActionType, event) {
             g_isRecentClicked = 0;
             return;
         }
-        // TODO: 或许可以通过判断箭头（不存在的话），直接跳到打开文档，而不等待
+        // 通过判断箭头（不存在的话），直接跳到打开文档，而不等待
         const b3ListItemToggle = sourceElem.querySelector('.b3-list-item__toggle');
         const toggleNotExist = b3ListItemToggle == null ? true : b3ListItemToggle.classList.contains("fn__hidden");
         let delay = g_setting.dblclickShowSubDoc ? g_setting.dblclickDelay : 0;
@@ -625,7 +623,7 @@ function clickFileTreeHandler(openActionType, event) {
         } else if (toggleNotExist && g_setting.revertBehavior) {
             delay = 0;
             g_isRecentClicked = 0;
-            // TODO: 判断Type，调用不同的打开函数
+            // 根据类型，调用不同的打开函数
             clickToOpenMulitWayDistributor(event, openActionType);
             event.preventDefault();
             event.stopPropagation();
@@ -687,6 +685,10 @@ function singleClickHandler(event, openActionType) {
     }
 }
 
+/**  
+ * 只执行添加--focus类
+ * 这个主要用于选择文档
+ */
 function pluginClickHandler(event) {
     const sourceElem = getSourceItemElement(event);
     if (sourceElem == null) {
@@ -695,14 +697,24 @@ function pluginClickHandler(event) {
     }
     if (!event.ctrlKey) {
         document.getElementById("foldTree")?.querySelectorAll(".b3-list-item--focus").forEach((elem)=>elem.classList.remove("b3-list-item--focus"));
+        document.getElementById("foldList")?.querySelectorAll(".b3-list-item--focus").forEach((elem)=>elem.classList.remove("b3-list-item--focus"));
     }
-    sourceElem.classList.add("b3-list-item--focus");
+    if (sourceElem.classList.contains("b3-list-item--focus")) {
+        sourceElem.classList.remove("b3-list-item--focus");
+    } else {
+        sourceElem.classList.add("b3-list-item--focus");
+    }
     debugPush("由 插件点击 处理", sourceElem);
     // g_isPluginRawClickItem = true;
     // sourceElem.click();
     return true;
 }
 
+/**
+ * 插件会重新发起一个点击事件
+ * @param {*} event 
+ * @returns 
+ */
 function pluginTrueClickHandler(event) {
     const sourceElem = getSourceItemElement(event);
     if (sourceElem == null) {
@@ -712,6 +724,7 @@ function pluginTrueClickHandler(event) {
     if (!event.ctrlKey) {
         document.getElementById("foldTree")?.querySelectorAll(".b3-list-item--focus").forEach((elem)=>elem.classList.remove("b3-list-item--focus"));
     }
+    
     sourceElem.classList.add("b3-list-item--focus");
     debugPush("由 插件点击 处理", sourceElem);
     g_isPluginRawClickItem = true;
@@ -1202,7 +1215,7 @@ function sleep(time){
  * 为引入本项目，和原代码相比有更改
  * @refer https://github.com/leolee9086/cc-template/blob/6909dac169e720d3354d77685d6cc705b1ae95be/baselib/src/commonFunctionsForSiyuan.js#L118-L141
  * @license 木兰宽松许可证
- * @param {点击事件} event 
+ * @param {Event} event 
  */
 function openRefLink(event, paramId = "", keyParam = undefined, protyleElem = undefined, openInFocus = false){
     let syMainWndDocument= window.parent.document
