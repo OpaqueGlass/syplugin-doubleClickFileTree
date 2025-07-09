@@ -833,8 +833,9 @@ function openDocByTreeItemElement(sourceElem) {
             break;
         }
         default: {
-            logPush("未能识别的souceElement类型");
-            return false;
+            logPush("未能识别的sourceElement类型，使用默认配置 FILE_TREE");
+            souceType = FILE_TREE;
+            break;
         }
     }
     if (souceType < NOTEBOOK) {
