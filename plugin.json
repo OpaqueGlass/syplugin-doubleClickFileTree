@@ -1,0 +1,21 @@
+{
+  "name": "syplugin-my-plugin-template",
+  "author": "OpaqueGlass",
+  "url": "https://github.com/OpaqueGlass/syplugin-my-plugin-template",
+  "version": "0.1.0",
+  "minAppVersion": "2.9.0",
+  "backends": ["all"],
+  "frontends": ["all"],
+  "displayName": {
+    "en_US": "Vue test plugin",
+    "zh_CN": "Vue Test Plugin"
+  },
+  "description": {
+    "en_US": "A template plugin based on Vite and Vue",
+    "zh_CN": "基于Vite与Vue的示例插件"
+  },
+  "readme": {
+    "en_US": "README.md",
+    "zh_CN": "README_zh_CN.md"
+  }
+}
