@@ -7,7 +7,7 @@ import readline  from 'node:readline';
 
 //Please write the "workspace/data/plugins" directory here
 //请在这里填写你的 "workspace/data/plugins" 目录
-let targetDir = '';
+let targetDir = 'E:\\Study\\Siyuan\\data\\plugins';
 //Like this
 // let targetDir = `H:\\SiYuanDevSpace\\data\\plugins`;
 //********************************************************************************************
@@ -66,6 +66,10 @@ async function getSiYuanDir() {
         error("Please make sure SiYuan is running!!!");
         return null;
     }
+    if (conf.code !== 0) {
+        error(`Error: ${conf.msg}`);
+        return null;
+    }
     return conf.data;
 }
 
@@ -96,7 +100,6 @@ async function chooseTarget(workspaces) {
 if (targetDir === '') {
     log('"targetDir" is empty, try to get SiYuan directory automatically....')
     let res = await getSiYuanDir();
-    
     if (res === null) {
         log('Failed! You can set the plugin directory in scripts/make_dev_link.js and try again');
         process.exit(1);

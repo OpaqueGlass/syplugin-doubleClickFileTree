@@ -15,11 +15,36 @@ import { CONSTANTS } from "@/constants";
 
 let setting: any = ref({});
 interface IPluginSettings {
-    
+    dblclickShowSubDoc?: boolean;
+    dblclickDelay?: number;
+    disableChangeIcon?: boolean;
+    revertBehavior?: boolean;
+    sameToOutline?: boolean;
+    extendClickArea?: boolean;
+    unfoldSubDocsWhileOpenParent?: number;
+    openToTop?: boolean;
+    lastModifyBlockHint?: boolean;
+    ignoreModifyHintIds?: string;
+    applyToDialog?: boolean;
+    enableMobile?: boolean;
+    sameToTag?: boolean;
+    debugMode?: boolean;
 };
 let defaultSetting: IPluginSettings = {
-    fontSize: 16,
-    popupWindow: ""
+    dblclickShowSubDoc: true,
+    dblclickDelay: 200,
+    disableChangeIcon: true,
+    revertBehavior: false,
+    sameToOutline: false,
+    extendClickArea: false,
+    unfoldSubDocsWhileOpenParent: 0,
+    openToTop: false,
+    lastModifyBlockHint: false,
+    ignoreModifyHintIds: "",
+    applyToDialog: false,
+    enableMobile: false,
+    sameToTag: false,
+    debugMode: false,
 }
 
 
@@ -36,17 +61,22 @@ export function initSettingProperty() {
     tabProperties.push(
         new TabProperty({
             key: "general", iconKey: "iconSettings", props: [
-                new ConfigProperty({ key: "fontSize", type: "NUMBER" }),
-                new ConfigProperty({ key: "popupWindow", type: "SWITCH" }),
-                new ConfigProperty({ key: "icon", type: "SELECT", options: ["all", "none", "part"] }),
+                new ConfigProperty({ key: "dblclickShowSubDoc", type: "SWITCH" }),
+                new ConfigProperty({ key: "dblclickDelay", type: "NUMBER", min: 50, max: 1200 }),
+                new ConfigProperty({ key: "revertBehavior", type: "SWITCH" }),
+                new ConfigProperty({ key: "disableChangeIcon", type: "SWITCH" }),
+                new ConfigProperty({ key: "unfoldSubDocsWhileOpenParent", type: "SELECT", options: ["0", "1", "2"] }),
+                new ConfigProperty({ key: "extendClickArea", type: "SWITCH" }),
+                new ConfigProperty({ key: "sameToOutline", type: "SWITCH" }),
+                new ConfigProperty({ key: "sameToTag", type: "SWITCH" }),
+                new ConfigProperty({ key: "openToTop", type: "SWITCH" }),
+                new ConfigProperty({ key: "lastModifyBlockHint", type: "SWITCH" }),
+                new ConfigProperty({ key: "applyToDialog", type: "SWITCH" }),
+                new ConfigProperty({ key: "enableMobile", type: "SWITCH" }),
+                new ConfigProperty({ key: "ignoreModifyHintIds", type: "TEXTAREA" }),
+                new ConfigProperty({ key: "debugMode", type: "SWITCH" }),
             ]
         }),
-        new TabProperty({
-            key: "appearance", iconKey: "iconTheme", props: [
-                new ConfigProperty({ key: "sameWidthColumn", type: "NUMBER" }),
-                new ConfigProperty({ key: "parentBoxCSS", type: "TEXTAREA" }),
-            ]
-        })
     );
 }
 
@@ -105,6 +135,11 @@ export async function loadSettings() {
     // TODO: 对于Order，switch需要进行检查，防止版本问题导致选项不存在，不存在的用默认值
     // TODO: switch旧版需要迁移，另外引出迁移逻辑
     setting.value = Object.assign(Object.assign({}, defaultSetting), loadResult);
+    if (setting.value.unfoldSubDocsWhileOpenParent === true) {
+        setting.value.unfoldSubDocsWhileOpenParent = 1;
+    } else if (setting.value.unfoldSubDocsWhileOpenParent === false) {
+        setting.value.unfoldSubDocsWhileOpenParent = 0;
+    }
     logPush("载入设置项", setting.value);
     // return loadResult;
     watch(setting, (newVal) => {
@@ -182,6 +217,8 @@ function checkSettingType(input:any) {
         if (prop.type == "SELECT") {
             if (!prop.options.includes(input[prop.key])) {
                 input[prop.key] = defaultSetting[prop.key];
+            } else if (prop.key === "unfoldSubDocsWhileOpenParent") {
+                input[prop.key] = Number(input[prop.key]);
             }
             // input[prop.key] = String(input[prop.key]);
         } else if (prop.type == "ORDER") {

@@ -1,21 +1,30 @@
 {
-  "name": "syplugin-my-plugin-template",
+  "name": "syplugin-doubleClickFileTree",
   "author": "OpaqueGlass",
-  "url": "https://github.com/OpaqueGlass/syplugin-my-plugin-template",
-  "version": "0.1.0",
-  "minAppVersion": "2.9.0",
-  "backends": ["all"],
-  "frontends": ["all"],
+  "url": "https://github.com/OpaqueGlass/syplugin-doubleClickFileTree",
+  "version": "0.3.7",
   "displayName": {
-    "en_US": "Vue test plugin",
-    "zh_CN": "Vue Test Plugin"
+    "default": "double click file tree",
+    "zh_CN": "双击文档树",
+    "en_US": "double click file tree"
   },
   "description": {
-    "en_US": "A template plugin based on Vite and Vue",
-    "zh_CN": "基于Vite与Vue的示例插件"
+    "default": "Double-click to expand the next level or double-click to open the document.",
+    "zh_CN": "双击展开下一层级，或双击打开文档；（测试中功能：对大纲、标签、移动端的单双击处理）",
+    "en_US": "Double-click to expand the next level or double-click to open the document."
   },
   "readme": {
-    "en_US": "README.md",
-    "zh_CN": "README_zh_CN.md"
+    "default": "README.md",
+    "zh_CN": "README_zh_CN.md",
+    "en_US": "README.md"
+  },
+  "i18n": [
+    "zh_CN",
+    "en_US"
+  ],
+  "funding": {
+    "custom": [
+      "https://wj.qq.com/s2/12395364/b69f/"
+    ]
   }
 }

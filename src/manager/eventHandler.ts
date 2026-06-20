@@ -1,24 +1,33 @@
 import { getPluginInstance } from "@/utils/pluginHelper";
-import Mutex from "@/utils/mutex";
 import { getReadOnlyGSettings } from "@/manager/settingManager";
-import { IEventBusMap } from "siyuan";
+import TreeInteractionManager from "./dblclick/treeInteractionManager";
+import RecentModifyHintManager from "./recentModifyHint";
+import DialogClickBinder from "./dialogClickBinder";
 export default class EventHandler {
     private handlerBindList: Record<string, (arg1: CustomEvent)=>void> = {
-        "loaded-protyle-static": this.loadedProtyleRetryEntry.bind(this), // mutex需要访问EventHandler的属性
-        "switch-protyle": this.loadedProtyleRetryEntry.bind(this),
+        "loaded-protyle-static": this.loadedProtyleStaticHandler.bind(this),
+        "click-editorcontent": this.clickEditorContentHandler.bind(this),
     };
     // 关联的设置项，如果设置项对应为true，则才执行绑定
-    private relateGsettingKeyStr: Record<string, string> = {
-        "loaded-protyle-static": null, // mutex需要访问EventHandler的属性
-        "switch-protyle": null,
+    private relateGsettingKeyStr: Record<string, string | null> = {
+        "loaded-protyle-static": "lastModifyBlockHint",
+        "click-editorcontent": "lastModifyBlockHint",
         "ws-main": "immediatelyUpdate",
     };
 
-    private loadAndSwitchMutex: Mutex;
-    private simpleMutex: number = 0;
-    private docIdMutex: Record<string, number> = {};
+    private readonly treeInteractionManager: TreeInteractionManager;
+    private readonly recentModifyHintManager: RecentModifyHintManager;
+    private readonly dialogClickBinder: DialogClickBinder;
+
     constructor() {
-        this.loadAndSwitchMutex = new Mutex();
+        this.treeInteractionManager = new TreeInteractionManager({
+            getDelay: () => {
+                const setting = getReadOnlyGSettings();
+                return Number(setting?.dblclickDelay ?? 200);
+            },
+        });
+        this.recentModifyHintManager = new RecentModifyHintManager();
+        this.dialogClickBinder = new DialogClickBinder();
     }
 
     bindHandler() {
@@ -30,6 +39,10 @@ export default class EventHandler {
                 plugin.eventBus.on(key, this.handlerBindList[key]);
             }
         }
+        this.treeInteractionManager.bind();
+        if (g_setting.applyToDialog) {
+            this.dialogClickBinder.bind();
+        }
         
     }
 
@@ -38,10 +51,18 @@ export default class EventHandler {
         for (let key in this.handlerBindList) {
             plugin.eventBus.off(key, this.handlerBindList[key]);
         }
+        this.treeInteractionManager.unbind();
+        this.dialogClickBinder.unbind();
     }
 
-    async loadedProtyleRetryEntry(event: CustomEvent<IEventBusMap["loaded-protyle-static"]>) {
-        // do sth
+    async loadedProtyleStaticHandler(event: CustomEvent<any>) {
+        void this.recentModifyHintManager.handleLoadedProtyleStatic(event);
+        void event;
+    }
+
+    async clickEditorContentHandler(event: CustomEvent<any>) {
+        this.recentModifyHintManager.handleClickEditorContent(event);
+        void event;
     }
 
 }

@@ -11,7 +11,7 @@
                 <span class="b3-list-item__text">{{ settingPageLang(tab.key)[0] }}</span>
             </li>
         </ul>
-        <div :class="{'config__tab-wrap': tabList.length != 1}">
+        <div :class="{'config__tab-wrap': true}">
             <!-- TODO: 这里换成v-for根据列表生成，不再手动填充了 -->
             <!-- 在Page上通过当前显示的标签页名称key一致匹配确定是否显示这个标签页 -->
             <Page v-for="(tab, index) in tabList" v-show="activeTab === tab.key">

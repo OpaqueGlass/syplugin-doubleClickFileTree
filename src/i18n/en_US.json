@@ -1,15 +1,64 @@
 {
-    "addTopBarIcon": "Add a top bar icon by plugin",
-    "cancel": "Cancel",
-    "save": "Save",
-    "byeMenu": "Bye, Menu!",
-    "helloPlugin": "Hello, Plugin!",
-    "byePlugin": "Bye, Plugin!",
-    "showDialog": "Show dialog",
-    "removedData": "Data deleted",
-    "confirmRemove": "Confirm to delete the data in ${name}?",
-    "name": "SiYuan",
-    "hello": {
-        "makesure": "Before using this template, please read the <a href=\"https://github.com/siyuan-note/plugin-sample\">offical sample</a>, make sure that you've known about the pipeline for plugin developing."
-    }
+  "button_save": "Save",
+  "button_cancel": "Cancel",
+  "setting_panel_title": "Plugin Settings: ",
+  
+  
+  "setting_dblclickShowSubDoc_name": "Enable double-click functionality",
+  "setting_dblclickShowSubDoc_desp": "Please note that whether enabled or not, the plugin will take over the left-click event on document items in the document tree. This may cause compatibility issues with other plugins or code snippets.",
+  "setting_dblclickDelay_name": "The time period for double-click detection.",
+  "setting_dblclickDelay_desp": "Please note that if the value is less than 150, it may be difficult to detect it as a double-click.",
+  "setting_revertBehavior_name": "Swap the logic: swap the behavior of single-click and double-click.",
+  "setting_revertBehavior_desp": "When this option is disabled, single-click will open the document and double-click will expand the sub-document. When this option is enabled, single-click will expand the sub-document and double-click will open the document. If there are no sub-documents, clicking will prioritize opening the document.",
+  "setting_disableChangeIcon_name": "Disable document tree toggle icons.",
+  "setting_disableChangeIcon_desp": "After enabling this feature, clicking on the icon will be treated as clicking on the document title, and it will be managed by the plugin for single-click/double-click actions.",
+  "setting_extendClickArea_name": "🧪Expand the responsive area.",
+  "setting_extendClickArea_desp": "After enabling this feature, clicking on the \">\" symbol will be treated as clicking on the document title, and it will be managed by the plugin for single-click/double-click actions. It may not necessarily expand the sub-document.",
+  "setting_unfoldSubDocsWhileOpenParent_name": "When opening the parent document, expand the sub-document.",
+  "setting_unfoldSubDocsWhileOpenParent_desp": "Please note that in the current implementation, the sub-document will be expanded first before opening the document. However, there may still be an issue with focusing on the document.",
+  "setting_unfoldSubDocsWhileOpenParent_option_0": "Disable",
+  "setting_unfoldSubDocsWhileOpenParent_option_1": "Enable",
+  "setting_unfoldSubDocsWhileOpenParent_option_2": "Enable, but only unfold",
+  "setting_sameToOutline_name": "🧪The same applies to the outline panel.",
+  "setting_sameToOutline_desp": "After enabling this feature, the aforementioned logic will be applied to the outline panel as well. However, there may be performance issues such as lagging when navigating in the outline and scrolling issues after navigation, especially for dynamically loaded documents. It is recommended to disable this feature in such cases.",
+  "setting_openToTop_name": "🧪After opening the document, do not navigate to a different location.",
+  "setting_openToTop_desp": "After enabling this feature, opening a document will no longer navigate to the last edited position.",
+  "setting_applyToDialog_name": "🧪The same logic applies to the document selector in the dialogue",
+  "setting_applyToDialog_desp": "When selecting a document within a dialog box, apply the aforementioned logic",
+  "setting_enableMobile_name": "🧪Enable functions in mobile",
+  "setting_enableMobile_desp": "",
+  "setting_sameToTag_name": "🧪The same applies to the tag panel.",
+  "setting_sameToTag_desp": "After enabling this feature, the aforementioned logic will be applied to the tag panel as well. ",
+  "setting_lastModifyBlockHint_name": "🧪Last Modified Block Hint",
+  "setting_lastModifyBlockHint_desp": "Provides a hint of the last recorded clicked block position when opening a document. This feature is only meaningful when the 'Do Not Navigate to Last Edited Position' option is enabled.",
+  "setting_ignoreModifyHintIds_name": "🧪Ignore the document ID for the last modified block hint.",
+  "setting_ignoreModifyHintIds_desp": "Please fill in the document IDs here, separated by commas. These documents will not display the last modified block hint. To block sub-documents, use the parent document ID followed by a slash (/).",
+
+  "setting_aboutAuthor_name": "About",
+  "setting_aboutAuthor_desp": "Translator: GPT3.5 @ February 23, 2024<br/>Developer: <a target='_blank' href='https://github.com/OpaqueGlass'>OpaqueGlass</a>;<br/>Git repo: <a target='_blank' href='https://github.com/OpaqueGlass/syplugin-doubleClickFileTree'>github</a>;<br/>Released under <a target='_blank' href='https://www.gnu.org/licenses/agpl-3.0.html'>AGPLv3</a> license;",
+
+
+  "setting_experimental": "(Experimental Feature. UNSTABLE. May be removed at any time) ",
+  "error_initFailed": "Double-click-file-tree (File tree enhance) Plugin initialization failed, please report this issue to developer at your convenience",
+
+  
+  "timed_less_than_a_minute": "less than a minute",
+  "timed_1_minute": "1 minute",
+  "timed_several_min": "%% minutes",
+  "timed_about_1_hour": "about 1 hour",
+  "timed_about_hours": "about %% hours",
+  "timed_1_day": "1 day",
+  "timed_days": "%% days",
+  "timed_about_1_month": "about 1 month",
+  "timed_about_2_months": "about 2 months",
+  "timed_months": "%% months",
+  "timed_about_1_year": "about 1 year",
+  "timed_over_1_year": "over 1 year",
+  "timed_almost_2_years": "almost 2 years",
+  "timed_about_years": "about %% years",
+  "timed_over_years": "over %% years",
+  "timed_almost_years": "almost %% years",
+
+  "last_modify_point_welcome": "Welcome back, your last read/edit was %% ago.",
+  "button_goto_last_modify_point": "Go to last position"
 }
