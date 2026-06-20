@@ -1207,6 +1207,13 @@ function isCtrlKey(event) {
     return event.ctrlKey;
 }
 
+function isEventCtrlKey(event) {
+    if (isMacOs()) {
+        return event.metaKey;
+    }
+    return event.ctrlKey;
+}
+
 function isMetaKey(event) {
     if (isMacOS()) {
         return event.ctrlKey;
@@ -1249,63 +1256,100 @@ function sleep(time){
     return new Promise((resolve) => setTimeout(resolve, time));
 }
 
-/**
- * 在点击<span data-type="block-ref">时打开思源块/文档
- * 为引入本项目，和原代码相比有更改
- * @refer https://github.com/leolee9086/cc-template/blob/6909dac169e720d3354d77685d6cc705b1ae95be/baselib/src/commonFunctionsForSiyuan.js#L118-L141
- * @license 木兰宽松许可证
- * @param {Event} event 
- */
 function openRefLink(event, paramId = "", keyParam = undefined, protyleElem = undefined, openInFocus = false){
-    let syMainWndDocument= window.parent.document
-    let id;
-    if (event && (event.currentTarget)?.getAttribute("data-node-id")) {
-        id = (event.currentTarget)?.getAttribute("data-node-id");
-    } else if ((event?.currentTarget)?.getAttribute("data-id")) {
-        id = (event.currentTarget)?.getAttribute("data-id");
+    openRefLinkByAPI({
+        mouseEvent: event,
+        paramDocId: paramId,
+        keyParam, keyParam,
+    });
+}
+
+
+function getPluginInstance() {
+    return g_pluginInstance;
+}
+
+
+
+let lastClickTime_openRefLinkByAPI = 0;
+/**
+ * 基于API的打开思源块/文档
+ * @param mouseEvent 鼠标点击事件，如果存在，优先使用
+ * @param paramDocId 如果没有指定 event，使用此参数作为文档id
+ * @param keyParam 如果没有event，使用此次数指定ctrlKey后台打开、shiftKey下方打开、altKey右侧打开
+ * @param openInFocus 是否以聚焦块的方式打开（此参数有变动）
+ * @param removeCurrentTab 是否移除当前Tab
+ * @param autoRemoveJudgeMiliseconds 自动判断是否移除当前Tab的时间间隔（0则 不自动判断）
+ * @param preventDefault {boolean} 控制是否禁止默认行为以及冒泡操作；如果在菜单中，请在调用前禁止冒泡和默认行为；另外，也可充当是否在当前聚焦窗口打开的控制（false，则在面包屑所在文档打开）
+ * @returns 
+ */
+function openRefLinkByAPI({mouseEvent, paramDocId = "", keyParam = {}, openInFocus = undefined, removeCurrentTab = undefined, autoRemoveJudgeMiliseconds = 0, preventDefault = false}) {
+    let docId;
+    if (mouseEvent && mouseEvent.currentTarget?.getAttribute("data-node-id")) {
+        docId = mouseEvent.currentTarget?.getAttribute("data-node-id");
+    } else if (mouseEvent && mouseEvent.currentTarget?.getAttribute("data-id")) {
+        docId = (mouseEvent.currentTarget)?.getAttribute("data-id");
+    } else if (mouseEvent && mouseEvent && mouseEvent.currentTarget?.getAttribute("data-og-node-id")) {
+        docId = mouseEvent.currentTarget?.getAttribute("data-og-node-id");
     } else {
-        id = paramId;
+        docId = paramDocId;
     }
     // 处理笔记本等无法跳转的情况
-    if (!isValidStr(id)) {return;}
-    event?.preventDefault();
-    event?.stopPropagation();
-    debugPush("openRefLinkEvent", event);
-    let simulateLink =  syMainWndDocument.createElement("span")
-    simulateLink.setAttribute("data-type","a")
-    simulateLink.setAttribute("data-href", "siyuan://blocks/" + id)
-    simulateLink.style.display = "none";//不显示虚拟链接，防止视觉干扰
-    let tempTarget = null;
-    // 如果提供了目标protyle，在其中插入
-    if (protyleElem && !openInFocus) {
-        tempTarget = protyleElem.querySelector(".protyle-wysiwyg div[data-node-id] div[contenteditable]") ?? protyleElem;
-        debugPush("openRefLink使用提供窗口", tempTarget);
+    if (!isValidStr(docId)) {
+        debugPush("错误的id", docId)
+        return;
     }
-    debugPush("openInFocus?", openInFocus);
-    if (openInFocus) {
-        // 先确定Tab
-        const dataId = syMainWndDocument.querySelector(".layout__wnd--active .layout-tab-bar .item--focus")?.getAttribute("data-id");
-        debugPush("openRefLink尝试使用聚焦窗口", dataId);
-        // 再确定Protyle
-        if (isValidStr(dataId)) {
-            tempTarget = window.document.querySelector(`.fn__flex-1.protyle[data-id='${dataId}']
-            .protyle-wysiwyg div[data-node-id] div[contenteditable]`);
-            debugPush("openRefLink使用聚焦窗口", tempTarget);
+    if (isMobile()) {
+        siyuan.openMobileFileById(getPluginInstance().app, docId);
+        return;
+    }
+    logPush("Try open By id", docId);
+    // 需要冒泡，否则不能在所在页签打开
+    if (preventDefault) {
+        mouseEvent?.preventDefault();
+        mouseEvent?.stopPropagation();
+    }
+    debugPush("openRefLinkEventAPIF", mouseEvent);
+    if (mouseEvent) {
+        keyParam = {};
+        keyParam["ctrlKey"] = mouseEvent.ctrlKey;
+        keyParam["shiftKey"] = mouseEvent.shiftKey;
+        keyParam["altKey"] = mouseEvent.altKey;
+        keyParam["metaKey"] = mouseEvent.metaKey;
+    }
+    let positionKey = undefined;
+    if (keyParam["altKey"]) {
+        positionKey = "right";
+    } else if (keyParam["shiftKey"]) {
+        positionKey = "bottom";
+    }
+    if (autoRemoveJudgeMiliseconds > 0) {
+        if (Date.now() - lastClickTime_openRefLinkByAPI < autoRemoveJudgeMiliseconds) {
+            removeCurrentTab = true;
         }
+        lastClickTime_openRefLinkByAPI = Date.now();
     }
-    if (!isValidStr(tempTarget)) {
-        tempTarget = syMainWndDocument.querySelector(".protyle-wysiwyg div[data-node-id] div[contenteditable]");
-        debugPush("openRefLink未能找到指定窗口，更改为原状态");
+    // 手动关闭
+    const needToCloseDocId = getCurrentDocIdF(true);
+    
+    const finalParam = {
+        app: getPluginInstance().app,
+        doc: {
+            id: docId,
+            zoomIn: openInFocus
+        },
+        position: positionKey,
+        keepCursor: isEventCtrlKey(keyParam) ? true : undefined,
+        removeCurrentTab: removeCurrentTab, // 目前这个选项的行为是：true，则当前页签打开；false，则根据思源设置：新页签打开
+    };
+    debugPush("打开文档执行参数", finalParam);
+    siyuan.openTab(finalParam);
+    // 后台打开页签不可移除
+    if (removeCurrentTab && !isEventCtrlKey(keyParam)) {
+        debugPush("插件自行移除页签");
+        removeCurrentTabF(needToCloseDocId);
+        removeCurrentTab = false;
     }
-    tempTarget.appendChild(simulateLink);
-    let clickEvent = new MouseEvent("click", {
-        ctrlKey: event?.ctrlKey ?? keyParam?.ctrlKey,
-        shiftKey: event?.shiftKey ?? keyParam?.shiftKey,
-        altKey: event?.altKey ?? keyParam?.altKey,
-        bubbles: true
-    });
-    simulateLink.dispatchEvent(clickEvent);
-    simulateLink.remove();
 }
 
 function isValidStr(s){
