@@ -1,7 +1,7 @@
 import { TabProperty, ConfigProperty, loadAllConfigPropertyFromTabProperty } from "../utils/settings";
 import { createApp, ref, watch } from "vue";
 import { getPluginInstance } from "@/utils/pluginHelper";
-import { debugPush, logPush, warnPush } from "@/logger";
+import { debugPush, logPush } from "@/logger";
 import { isMobile } from "@/syapi";
 import { isValidStr } from "@/utils/commonCheck";
 import * as siyuan from "siyuan";
@@ -16,6 +16,7 @@ import { CONSTANTS } from "@/constants";
 let setting: any = ref({});
 interface IPluginSettings {
     dblclickShowSubDoc?: boolean;
+    prefetchSubDocsForDoubleClick?: boolean;
     dblclickDelay?: number;
     disableChangeIcon?: boolean;
     revertBehavior?: boolean;
@@ -32,6 +33,7 @@ interface IPluginSettings {
 };
 let defaultSetting: IPluginSettings = {
     dblclickShowSubDoc: true,
+    prefetchSubDocsForDoubleClick: true,
     dblclickDelay: 200,
     disableChangeIcon: true,
     revertBehavior: false,
@@ -62,6 +64,7 @@ export function initSettingProperty() {
         new TabProperty({
             key: "general", iconKey: "iconSettings", props: [
                 new ConfigProperty({ key: "dblclickShowSubDoc", type: "SWITCH" }),
+                new ConfigProperty({ key: "prefetchSubDocsForDoubleClick", type: "SWITCH" }),
                 new ConfigProperty({ key: "dblclickDelay", type: "NUMBER", min: 50, max: 1200 }),
                 new ConfigProperty({ key: "revertBehavior", type: "SWITCH" }),
                 new ConfigProperty({ key: "disableChangeIcon", type: "SWITCH" }),
@@ -113,7 +116,7 @@ export async function loadSettings() {
             loadResult = defaultSetting;
         }
     }
-    const currentVersion = 20241219;
+    const currentVersion = 20260620;
     if (!loadResult["@version"] || loadResult["@version"] < currentVersion) {
         // 旧版本
         loadResult["@version"] = currentVersion;
@@ -183,7 +186,7 @@ function showOutdatedSettingWarnDialog(outdatedSettingKeys, defaultSettings) {
     }
     const app = createApp(outdatedSettingVue, {"outdatedKeys": outdatedSettingKeys, "defaultSettings": defaultSettings});
     const uid = generateUUID();
-    const settingDialog = new siyuan.Dialog({
+        const settingDialog = new siyuan.Dialog({
             "title": lang("dialog_panel_plugin_name") + lang("dialog_panel_outdate"),
             "content": `
             <div id="og_plugintemplate_${uid}" class="b3-dialog__content" style="overflow: hidden; position: relative;height: 100%;"></div>
@@ -192,6 +195,7 @@ function showOutdatedSettingWarnDialog(outdatedSettingKeys, defaultSettings) {
             "height": isMobile() ? "auto":"auto",
             "destroyCallback": ()=>{app.unmount();},
         });
+        void settingDialog;
     app.mount(`#og_plugintemplate_${uid}`);
     return;
 }
@@ -282,10 +286,6 @@ export function getDefaultSettings() {
     return defaultSetting;
 }
 
-export function updateSingleSetting(key: string, value: any) {
-    // 对照检查setting的类型
-    // 直接绑定@change的话，value部分可能传回event
-    // 如果700毫秒内没用重复调用，则执行保存
-    
+export function updateSingleSetting() {
 }
 

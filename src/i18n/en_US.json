@@ -5,7 +5,9 @@
   
   
   "setting_dblclickShowSubDoc_name": "Enable double-click functionality",
-  "setting_dblclickShowSubDoc_desp": "Please note that whether enabled or not, the plugin will take over the left-click event on document items in the document tree. This may cause compatibility issues with other plugins or code snippets.",
+  "setting_dblclickShowSubDoc_desp": "When enabled, the plugin takes over left-click handling for document items in the tree and manages single-click/double-click behavior. When disabled, the original behavior is restored. Please note that this may cause compatibility issues with other plugins or code snippets.",
+  "setting_prefetchSubDocsForDoubleClick_name": "Prefetch sub-documents before double-click expansion",
+  "setting_prefetchSubDocsForDoubleClick_desp": "When enabled, the first click asynchronously fetches and builds the subtree that will be expanded, and double-click reuses the prepared list to insert it into the document tree. When disabled, the plugin falls back to simulating a click on the expand toggle.",
   "setting_dblclickDelay_name": "The time period for double-click detection.",
   "setting_dblclickDelay_desp": "Please note that if the value is less than 150, it may be difficult to detect it as a double-click.",
   "setting_revertBehavior_name": "Swap the logic: swap the behavior of single-click and double-click.",
