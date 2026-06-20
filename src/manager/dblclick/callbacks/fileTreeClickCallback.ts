@@ -114,7 +114,8 @@ export default class FileTreeClickCallback extends TreeClickCallbackBase {
         if (!sourceElem.isConnected) {
             return;
         }
-
+        const cacheKey = this.getChacheKey(notebookId, path, editingPublishAccess);
+        this.treeChildrenCache.delete(cacheKey);
         const nextElement = sourceElem.nextElementSibling;
         if (nextElement && nextElement.tagName === "UL") {
             nextElement.innerHTML = prefetched.html;
@@ -144,8 +145,12 @@ export default class FileTreeClickCallback extends TreeClickCallbackBase {
         }, 2);
     }
 
+    private getChacheKey(notebookId: string, path: string, editingPublishAccess: boolean): string {
+        return `${notebookId}::${path}::${editingPublishAccess ? 1 : 0}`;
+    }
+
     private getTreeChildrenPromise(notebookId: string, path: string, editingPublishAccess = false): Promise<PrefetchedTreeChildren | null> {
-        const cacheKey = `${notebookId}::${path}::${editingPublishAccess ? 1 : 0}`;
+        const cacheKey = this.getChacheKey(notebookId, path, editingPublishAccess);
         const existedPromise = this.treeChildrenCache.get(cacheKey);
         if (existedPromise) {
             return existedPromise;
