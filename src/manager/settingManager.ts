@@ -35,7 +35,7 @@ let defaultSetting: IPluginSettings = {
     dblclickShowSubDoc: true,
     prefetchSubDocsForDoubleClick: true,
     dblclickDelay: 200,
-    disableChangeIcon: true,
+    disableChangeIcon: false,
     revertBehavior: false,
     sameToOutline: false,
     extendClickArea: false,
@@ -72,11 +72,13 @@ export function initSettingProperty() {
                 new ConfigProperty({ key: "extendClickArea", type: "SWITCH" }),
                 new ConfigProperty({ key: "sameToOutline", type: "SWITCH" }),
                 new ConfigProperty({ key: "sameToTag", type: "SWITCH" }),
-                new ConfigProperty({ key: "openToTop", type: "SWITCH" }),
-                new ConfigProperty({ key: "lastModifyBlockHint", type: "SWITCH" }),
                 new ConfigProperty({ key: "applyToDialog", type: "SWITCH" }),
                 new ConfigProperty({ key: "enableMobile", type: "SWITCH" }),
+
+                new ConfigProperty({ key: "openToTop", type: "SWITCH" }),
+                new ConfigProperty({ key: "lastModifyBlockHint", type: "SWITCH" }),
                 new ConfigProperty({ key: "ignoreModifyHintIds", type: "TEXTAREA" }),
+
                 new ConfigProperty({ key: "debugMode", type: "SWITCH" }),
             ]
         }),

@@ -1,6 +1,7 @@
 import { debugPush } from "@/logger";
 import { ClickDispatchContext } from "../types";
 import TreeClickCallbackBase from "./treeClickCallbackBase";
+import { CLICK_SOURCE_TYPE } from "@/constants";
 
 export default class DialogTreeClickCallback extends TreeClickCallbackBase {
     protected getOpenActionType() {
@@ -11,12 +12,8 @@ export default class DialogTreeClickCallback extends TreeClickCallbackBase {
         return false;
     }
 
-    protected clearFocusedItem(sourceType: number): void {
-        if (sourceType === 1) {
-            document.querySelector(".sy__outline .b3-list-item--focus, #sidebar [data-type='sidebar-outline'] .b3-list-item--focus")?.classList.remove("b3-list-item--focus");
-        } else {
-            document.querySelector(".sy__file .b3-list-item--focus, #sidebar [data-type='sidebar-file'] .b3-list-item--focus")?.classList.remove("b3-list-item--focus");
-        }
+    protected clearFocusedItem(sourceType: CLICK_SOURCE_TYPE): void {
+        document.getElementById("foldTree")?.querySelectorAll(".b3-list-item--focus").forEach((elem) => elem.classList.remove("b3-list-item--focus"));
     }
 
     protected doubleClickUnfoldHandler(ctx: ClickDispatchContext): boolean {
@@ -25,7 +22,7 @@ export default class DialogTreeClickCallback extends TreeClickCallbackBase {
             return false;
         }
         debugPush("由 双击展开 处理", sourceElem);
-        const targetNodeId = sourceElem.getAttribute("data-box") + sourceElem.getAttribute("data-path");
+        const targetNodeId = this.getContextId(ctx);
         debugPush("双击targetNodeId, g_id", targetNodeId, this.getRecentClickedId());
         if (sourceElem && this.getRecentClickedId() === targetNodeId) {
             const b3ListItemToggle = sourceElem.querySelector(".b3-list-item__toggle") as HTMLElement | null;

@@ -6,6 +6,7 @@ import * as siyuan from "siyuan";
 import { getPluginInstance } from "@/utils/pluginHelper";
 import PanelClickCallbackBase from "./panelClickCallbackBase";
 import type { ClickDispatchContext } from "../types";
+import { CLICK_SOURCE_TYPE } from "@/constants";
 
 export type TreePanelKind = "fileTree" | "outline";
 
@@ -178,6 +179,15 @@ export default abstract class TreeClickCallbackBase extends PanelClickCallbackBa
         return true;
     }
 
+    protected afterHandleSingleQueued(_ctx: ClickDispatchContext): void {
+        if (!isEventCtrlKey(_ctx.event)) {
+            debugPush("清除其他焦点");
+            this.clearFocusedItem(this.getSourceTypeBySourceElem(_ctx.itemElement));
+        }
+        debugPush("设置当前焦点", _ctx.itemElement);
+        _ctx.itemElement.classList.add("b3-list-item--focus");
+    }
+
     protected pluginTrueClickHandler(ctx: ClickDispatchContext): boolean {
         const sourceElem = ctx.itemElement;
         if (sourceElem == null) {
@@ -199,25 +209,9 @@ export default abstract class TreeClickCallbackBase extends PanelClickCallbackBa
         if (sourceElem == null) {
             return false;
         }
-        const FILE_TREE = 0, OUTLINE_TREE = 1, NOTEBOOK = 2;
-        let souceType = FILE_TREE;
-        switch (sourceElem.getAttribute("data-type")) {
-            case "navigation-file":
-                souceType = FILE_TREE;
-                break;
-            case "NodeHeading":
-                souceType = OUTLINE_TREE;
-                break;
-            case "navigation-root":
-                souceType = NOTEBOOK;
-                break;
-            default:
-                logPush("未能识别的sourceElement类型，使用默认配置 FILE_TREE");
-                souceType = FILE_TREE;
-                break;
-        }
+        let souceType = this.getSourceTypeBySourceElem(sourceElem);
 
-        if (souceType < NOTEBOOK) {
+        if (souceType < CLICK_SOURCE_TYPE.NOTEBOOK) {
             const targetNodeId = sourceElem.getAttribute("data-node-id");
             debugPush("获取到的文件id", targetNodeId);
             if (isValidStr(targetNodeId)) {
@@ -243,7 +237,7 @@ export default abstract class TreeClickCallbackBase extends PanelClickCallbackBa
                         app: getPluginInstance().app,
                         doc: {
                             id: targetNodeId,
-                            action: souceType === FILE_TREE && getReadOnlyGSettings().openToTop ? undefined : ["cb-get-focus", "cb-get-scroll"],
+                            action: souceType === CLICK_SOURCE_TYPE.FILE_TREE && getReadOnlyGSettings().openToTop ? undefined : ["cb-get-focus", "cb-get-scroll"],
                         }
                     }).catch((err) => {
                         errorPush("打开文档时发生错误", err);
@@ -252,13 +246,13 @@ export default abstract class TreeClickCallbackBase extends PanelClickCallbackBa
                     siyuan.openMobileFileById(
                         getPluginInstance().app,
                         targetNodeId,
-                        souceType === FILE_TREE && getReadOnlyGSettings().openToTop ? ["cb-get-focus"] : ["cb-get-focus", "cb-get-scroll"]
+                        souceType === CLICK_SOURCE_TYPE.FILE_TREE && getReadOnlyGSettings().openToTop ? ["cb-get-focus"] : ["cb-get-focus", "cb-get-scroll"]
                     );
                 }
 
                 return true;
             }
-        } else if (souceType === NOTEBOOK) {
+        } else if (souceType === CLICK_SOURCE_TYPE.NOTEBOOK) {
             const b3ListItemToggle = sourceElem.querySelector(".b3-list-item__toggle") as HTMLElement | null;
             if (!b3ListItemToggle) {
                 return false;
@@ -325,7 +319,27 @@ export default abstract class TreeClickCallbackBase extends PanelClickCallbackBa
         return isMac ? event.ctrlKey : event.metaKey;
     }
 
+    protected getSourceTypeBySourceElem(sourceElem: Element): CLICK_SOURCE_TYPE {
+        let souceType = CLICK_SOURCE_TYPE.FILE_TREE;
+        switch (sourceElem.getAttribute("data-type")) {
+            case "navigation-file":
+                souceType = CLICK_SOURCE_TYPE.FILE_TREE;
+                break;
+            case "NodeHeading":
+                souceType = CLICK_SOURCE_TYPE.OUTLINE_TREE;
+                break;
+            case "navigation-root":
+                souceType = CLICK_SOURCE_TYPE.NOTEBOOK;
+                break;
+            default:
+                logPush("未能识别的sourceElement类型，使用默认配置 FILE_TREE");
+                souceType = CLICK_SOURCE_TYPE.FILE_TREE;
+                break;
+        }
+        return souceType;
+    }
+
     protected abstract getOpenActionType(): "openDoc" | "rawClick" | "trueClick";
     protected abstract doNotSkipCtrlKey(): boolean;
-    protected abstract clearFocusedItem(sourceType: number): void;
+    protected abstract clearFocusedItem(sourceType: CLICK_SOURCE_TYPE): void;
 }

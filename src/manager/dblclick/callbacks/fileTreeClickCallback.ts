@@ -24,6 +24,7 @@ export default class FileTreeClickCallback extends TreeClickCallbackBase {
     }
 
     protected afterHandleSingleQueued(ctx: ClickDispatchContext): void {
+        super.afterHandleSingleQueued(ctx);
         const setting = getReadOnlyGSettings();
         if (!setting?.dblclickShowSubDoc || !setting?.prefetchSubDocsForDoubleClick || setting?.revertBehavior) {
             return;
@@ -75,11 +76,7 @@ export default class FileTreeClickCallback extends TreeClickCallbackBase {
     }
 
     protected clearFocusedItem(sourceType: number): void {
-        if (sourceType === 1) {
-            document.querySelector(".sy__outline .b3-list-item--focus, #sidebar [data-type='sidebar-outline'] .b3-list-item--focus")?.classList.remove("b3-list-item--focus");
-        } else {
-            document.querySelector(".sy__file .b3-list-item--focus, #sidebar [data-type='sidebar-file'] .b3-list-item--focus")?.classList.remove("b3-list-item--focus");
-        }
+        document.querySelector(".sy__file .b3-list-item--focus, #sidebar [data-type='sidebar-file'] .b3-list-item--focus")?.classList.remove("b3-list-item--focus");
     }
 
     private async prefetchTreeChildren(ctx: ClickDispatchContext): Promise<PrefetchedTreeChildren | null> {

@@ -1,6 +1,7 @@
 import { getReadOnlyGSettings } from "@/manager/settingManager";
 import type { ClickDispatchContext } from "../types";
 import { debugPush } from "@/logger";
+import { CLICK_SOURCE_TYPE } from "@/constants";
 
 export default abstract class PanelClickCallbackBase {
     private recentClickedAt = 0;
@@ -18,7 +19,8 @@ export default abstract class PanelClickCallbackBase {
 
         const now = Date.now();
         debugPush("接收到点击事件", now);
-        const dblclickDelay = Number(getReadOnlyGSettings()?.dblclickDelay ?? 200);
+        const settings = getReadOnlyGSettings();
+        const dblclickDelay = Number(settings.dblclickShowSubDoc ? (settings?.dblclickDelay ?? 200) : 0);
         const timeGap = now - this.recentClickedAt;
 
         if (timeGap > dblclickDelay) {

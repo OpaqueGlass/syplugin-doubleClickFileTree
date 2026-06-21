@@ -5,7 +5,7 @@
   
   
   "setting_dblclickShowSubDoc_name": "Enable double-click functionality",
-  "setting_dblclickShowSubDoc_desp": "When enabled, the plugin takes over left-click handling for document items in the tree and manages single-click/double-click behavior. When disabled, the original behavior is restored. Please note that this may cause compatibility issues with other plugins or code snippets.",
+  "setting_dblclickShowSubDoc_desp": "If you don't use the double-click functionality, disabling it will reduce single-click latency (equivalent to setting the double-click detection period to 0). However, regardless of whether it's enabled or disabled, the plugin will handle left-click events on document items in the document tree. Note that this may be incompatible with other plugins or code snippets.",
   "setting_prefetchSubDocsForDoubleClick_name": "Prefetch sub-documents before double-click expansion",
   "setting_prefetchSubDocsForDoubleClick_desp": "When enabled, the first click asynchronously fetches and builds the subtree that will be expanded, and double-click reuses the prepared list to insert it into the document tree. When disabled, the plugin falls back to simulating a click on the expand toggle.",
   "setting_dblclickDelay_name": "The time period for double-click detection.",
@@ -38,7 +38,8 @@
 
   "setting_aboutAuthor_name": "About",
   "setting_aboutAuthor_desp": "Translator: GPT3.5 @ February 23, 2024<br/>Developer: <a target='_blank' href='https://github.com/OpaqueGlass'>OpaqueGlass</a>;<br/>Git repo: <a target='_blank' href='https://github.com/OpaqueGlass/syplugin-doubleClickFileTree'>github</a>;<br/>Released under <a target='_blank' href='https://www.gnu.org/licenses/agpl-3.0.html'>AGPLv3</a> license;",
-
+  "setting_debugMode_name": "Debug Mode",
+  "setting_debugMode_desp": "When enabled, additional logs will be output to the console; if you encounter issues, please enable this option and provide the logs to the developer; if you don't encounter any issues, it's recommended to disable this option to improve performance",
 
   "setting_experimental": "(Experimental Feature. UNSTABLE. May be removed at any time) ",
   "error_initFailed": "Double-click-file-tree (File tree enhance) Plugin initialization failed, please report this issue to developer at your convenience",
