@@ -215,7 +215,9 @@ export default class FileTreeClickCallback extends TreeClickCallbackBase {
             ? `<span class="popover__block counter b3-tooltips b3-tooltips__nw" aria-label="${window.siyuan.languages.ref}">${item.count}</span>`
             : "";
         const paddingLeft = (item.path.split("/").length - 1) * 18;
-        const icon = item.icon || (item.subFileCount === 0 ? "📄" : "📁");
+        const defaultDocIcon = String.fromCodePoint(parseInt(window.siyuan.storage["local-images"].file, 16));
+        const defaultFolderIcon = String.fromCodePoint(parseInt(window.siyuan.storage["local-images"].folder, 16));
+        const icon = item.icon || (item.subFileCount === 0 ? defaultDocIcon : defaultFolderIcon);
         const ariaLabel = this.getDocAriaLabel(item);
 
         return `<li data-node-id="${item.id}" data-name="${escapeHTML(item.name)}" draggable="true" data-count="${item.subFileCount}"
