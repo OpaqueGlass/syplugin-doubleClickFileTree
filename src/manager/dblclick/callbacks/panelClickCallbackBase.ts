@@ -17,17 +17,25 @@ export default abstract class PanelClickCallbackBase {
             return;
         }
 
-        const now = Date.now();
+        const now = ctx.event.timeStamp;
+        const prevClickedAt = this.recentClickedAt;
+        this.recentClickedAt = now;
         debugPush("接收到点击事件", now);
+        const detailClick = ctx.event.detail % 2;
+        
+        const timeGap = now - prevClickedAt;
+        const currentId = this.getContextId(ctx);
+
         const settings = getReadOnlyGSettings();
         const dblclickDelay = Number(settings.dblclickShowSubDoc ? (settings?.dblclickDelay ?? 200) : 0);
-        const timeGap = now - this.recentClickedAt;
 
-        if (timeGap > dblclickDelay) {
-            this.recentClickedAt = now;
+        debugPush("timegap", timeGap, "recentClickedId", this.recentClickedId, "currentId", currentId, "dblclickDelay", dblclickDelay, "event.detail", ctx.event.detail);
+        // (timeGap > dblclickDelay || currentId !== this.recentClickedId) && 
+        if (detailClick === 1) {
             window.clearTimeout(this.recentClickTimer ?? undefined);
+            this.stopEvent(ctx.event);
             this.recentClickTimer = null;
-            this.recentClickedId = this.getContextId(ctx);
+            this.recentClickedId = currentId;
 
             this.recentClickTimer = window.setTimeout(() => {
                 this.recentClickedAt = 0;
@@ -36,14 +44,13 @@ export default abstract class PanelClickCallbackBase {
                 this.recentClickedId = null;
             }, this.getSingleClickDelay(ctx, dblclickDelay));
             this.afterHandleSingleQueued(ctx);
-            this.stopEvent(ctx.event);
             return;
         }
 
         window.clearTimeout(this.recentClickTimer ?? undefined);
         this.recentClickTimer = null;
         this.recentClickedAt = 0;
-        if (this.handleDoubleAction(ctx)) {
+        if (detailClick !== 1 && this.handleDoubleAction(ctx)) {
             this.recentClickedId = null;
             this.stopEvent(ctx.event);
         }

@@ -46,18 +46,22 @@ export default class FileTreeClickCallback extends TreeClickCallbackBase {
             return false;
         }
         const targetNodeId = sourceElem.getAttribute("data-node-id");
-        debugPush("由 双击展开（预取复用）处理", sourceElem);
+        debugPush("由 双击展开（预取复用）处理", sourceElem, sourceElem.classList);
         debugPush("双击targetNodeId, g_id", targetNodeId, this.getRecentClickedId());
-        if (this.getRecentClickedId() !== targetNodeId) {
-            return false;
+        const recentClickedId = this.getRecentClickedId();
+        if (recentClickedId !== targetNodeId) {
+            debugPush("双击targetNodeId与最近点击id不一致", targetNodeId, recentClickedId);
+            // return false;
         }
 
         const b3ListItemToggle = sourceElem.querySelector(".b3-list-item__toggle") as HTMLElement | null;
         if (b3ListItemToggle == null) {
+            debugPush("未找到展开按钮");
             return false;
         }
 
         if (this.isTreeItemExpanded(sourceElem)) {
+            debugPush("双击收起", sourceElem);
             this.collapseTreeItem(sourceElem);
             return true;
         }
@@ -69,6 +73,7 @@ export default class FileTreeClickCallback extends TreeClickCallbackBase {
             return super.doubleClickUnfoldHandler(ctx);
         }
 
+        debugPush("尝试插入元素");
         void this.insertPrefetchedChildren(sourceElem, notebookId, path, b3ListItemToggle).catch((err) => {
             errorPush("复用预取展开列表失败", err);
         });
@@ -183,7 +188,7 @@ export default class FileTreeClickCallback extends TreeClickCallbackBase {
 
     private isTreeItemExpanded(sourceElem: HTMLElement): boolean {
         const nextElement = sourceElem.nextElementSibling;
-        return nextElement?.tagName === "UL" && sourceElem.querySelector(".b3-list-item__arrow")?.classList.contains("b3-list-item__arrow--open") === true;
+        return nextElement?.tagName === "UL" || sourceElem.querySelector(".b3-list-item__arrow")?.classList.contains("b3-list-item__arrow--open") === true;
     }
 
     private collapseTreeItem(sourceElem: HTMLElement): void {
