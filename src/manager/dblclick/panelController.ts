@@ -12,6 +12,8 @@ export default abstract class PanelController {
     protected readonly callbacks: PanelClickCallbackBase;
     protected readonly runtime: () => InteractionRuntimeOptions;
 
+    protected retryInterval: number | null = null;
+
     private readonly boundRoots = new Set<Element>();
 
     constructor(options: PanelControllerOptions) {
@@ -24,10 +26,21 @@ export default abstract class PanelController {
         this.unbind();
         const { capture } = this.runtime();
         this.getRootSelectors().forEach((selector) => {
+            let binded = false;
             document.querySelectorAll(selector).forEach((root) => {
                 root.addEventListener("click", this.onRootClick, capture);
                 this.boundRoots.add(root);
+                binded = true;
             });
+            if (!binded) {
+                clearInterval(this.retryInterval!);
+                this.retryInterval = window.setInterval(() => {
+                    this.bind();
+                }, 1000);
+            } else {
+                clearInterval(this.retryInterval!);
+                this.retryInterval = null;
+            }
         });
     }
 

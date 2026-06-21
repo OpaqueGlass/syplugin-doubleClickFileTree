@@ -2,8 +2,10 @@ import { isEventCtrlKey } from "@/utils/commonCheck";
 import { debugPush } from "@/logger";
 import PanelClickCallbackBase from "./panelClickCallbackBase";
 import type { ClickDispatchContext } from "../types";
+import { getReadOnlyGSettings } from "@/manager/settingManager";
+import TreeClickCallbackBase from "./treeClickCallbackBase";
 
-export default class TagClickCallback extends PanelClickCallbackBase {
+export default class TagClickCallback extends TreeClickCallbackBase {
     protected shouldHandleContext(ctx: ClickDispatchContext): boolean {
         const event = ctx.event;
         if (event.button !== 0) {
@@ -22,15 +24,7 @@ export default class TagClickCallback extends PanelClickCallbackBase {
     }
 
     protected getContextId(ctx: ClickDispatchContext): string | null {
-        return ctx.itemId;
-    }
-
-    protected handleSingleAction(ctx: ClickDispatchContext): void {
-        this.trueClick(ctx);
-    }
-
-    protected handleDoubleAction(_ctx: ClickDispatchContext): boolean {
-        return false;
+        return ctx.itemElement.getAttribute("data-label");
     }
 
     protected getOpenActionType() {
@@ -42,17 +36,6 @@ export default class TagClickCallback extends PanelClickCallbackBase {
     }
 
     protected clearFocusedItem(): void {
-        document.getElementById("foldTree")?.querySelectorAll(".b3-list-item--focus").forEach((elem) => elem.classList.remove("b3-list-item--focus"));
-    }
-
-    private trueClick(ctx: ClickDispatchContext): boolean {
-        const sourceElem = ctx.itemElement;
-        if (!isEventCtrlKey(ctx.event)) {
-            this.clearFocusedItem();
-        }
-        sourceElem.classList.add("b3-list-item--focus");
-        debugPush("由 插件点击 处理", sourceElem);
-        sourceElem.click();
-        return true;
+        document.querySelectorAll(".sy__tag .b3-list-item--focus, #sidebar [data-type='sidebar-tag'] .b3-list-item--focus").forEach((elem) => elem.classList.remove("b3-list-item--focus"));
     }
 }

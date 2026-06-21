@@ -142,7 +142,7 @@ export default abstract class TreeClickCallbackBase extends PanelClickCallbackBa
             return false;
         }
         debugPush("由 双击展开 处理", sourceElem);
-        const targetNodeId = sourceElem.getAttribute("data-node-id");
+        const targetNodeId = this.getContextId(ctx);
         debugPush("双击targetNodeId, g_id", targetNodeId, this.getRecentClickedId());
         if (sourceElem && this.getRecentClickedId() === targetNodeId) {
             const b3ListItemToggle = sourceElem.querySelector(".b3-list-item__toggle") as HTMLElement | null;
