@@ -1,187 +1,41 @@
+## doubleClickFileTree 双击文档树插件
 
-# 自用的思源笔记插件模板 基于Vite + Vue
+[English](README.md)
 
-[English](./README.md)
+> 当前版本：v1.0.0
+>
+>   开发者不保证各主要功能在本次重构后与上一版本行为完全一致，**如果此版本没有你感兴趣的内容，请推迟更新**
+> - 重构：将项目的实现方式从原来的单一js文件迁移到ts+vite插件模板，提升可维护性；
+> - 新增：双击展开预取功能，尝试减少双击展开的延迟；（默认禁用）
+> - 调整：非Ctrl点击时，立刻调整列表的聚焦位置；
+> - 新增：在设置中新增“将文档视为文件夹”选项，启用后，单击将不延迟地执行展开/收起操作；（除非启用交换逻辑，否则默认禁用）
+>
+> [更新日志](CHANGELOG.md)
 
-> [!NOTE]
-> 本模板基于： [siyuan/plugin-sample](https://github.com/siyuan-note/plugin-sample) [v0.1.4](https://github.com/siyuan-note/plugin-sample/tree/v0.1.4). 
-> 与 [siyuan/plugin-sample-vite-svelte](https://github.com/siyuan-note/plugin-sample-vite-svelte) [v0.1.4](https://github.com/siyuan-note/plugin-sample-vite-svelte/releases/tag/v0.1.4) (发布于2023年6月)创建
-> 因此，在使用API时，可能包含过时的API调用；
+用于思源笔记更改文档树左键双击行为的插件；（测试中功能：标签、对话框文档选择、移动端的单双击处理（不支持平板端））
 
-> [!NOTE]
-> 本示例不包含API调用示例和相关库；
+### 快速开始
 
-1. 使用 vite 打包
-2. 使用符号链接、而不是把项目放到插件目录下的模式进行开发
-3. 内置对 vue 框架的支持
-4. 提供一个github action 模板，能自动生成package.zip并上传到新版本中
+- 从集市下载 或 1、解压Release中的`package.zip`，2、将文件夹移动到`工作空间/data/plugins/`，3、并将文件夹重命名为`syplugin-doubleClickFileTree`;
+- 开启插件即可；
+- 其他请浏览插件设置页面（`设置`→`集市`→`已下载`→`插件`→找到插件→“设置图标”），**提示：设置页可以上下滑动哦**；
+- 默认禁用文档树修改图标，可到插件设置更改；
 
-## 开始
+#### 说明
 
-1. 通过 <kbd>Use this template</kbd> 按钮将该库文件复制到你自己的库中，请注意库名必须和插件名称一致，默认分支必须为 `main`
-2. 将你的库克隆到本地开发文件夹中
-    * 注意: 与 `plugin-sample` 不同, 本样例并不推荐直接把代码下载到 `{workspace}/data/plugins/`
-3. 安装 [NodeJS](https://nodejs.org/en/download) 和 [pnpm](https://pnpm.io/installation)，然后在开发文件夹下执行 `pnpm i` 安装所需要的依赖；
-4. 设置环境变量`SIYUAN_API_TOKEN`，值为思源的API token，可以在思源设置、关于中查看。
-5. 修改部分信息：
-   1. 开源许可 `LICENSE`；
-   2. `package.json`中的插件名称；
-   3. `plugin.json`中的插件名称和相关描述；
-   4. `src/index.ts`中的插件类名称；
-   5. `src/logger/index.ts`中的`g_NAME`，`g_FULLNAME`；
-6. **自动创建符号链接**，或跳转到第7步
-    - 打开思源笔记, 确保思源内核正在运行
-    - 运行 `pnpm run make-link`, 脚本会自动检测所有思源的工作空间, 请在命令行中手动输入序号以选择工作空间
-        ```bash
-        >>> pnpm run make-link
-        > plugin-sample-vite-svelte@0.0.3 make-link H:\SrcCode\开源项目\plugin-sample-vite-svelte
-        > node  --no-warnings ./scripts/make_dev_link.js
+请注意，启用插件后，插件将接管鼠标左键点击文档树中文档的事件，这可能与其他插件或代码片段不兼容。
 
-        "targetDir" is empty, try to get SiYuan directory automatically....
-        Got 2 SiYuan workspaces
-        [0] H:\Media\SiYuan
-        [1] H:\临时文件夹\SiYuanDevSpace
-        Please select a workspace[0-1]: 0
-        Got target directory: H:\Media\SiYuan/data/plugins
-        Done! Created symlink H:\Media\SiYuan/data/plugins/plugin-sample-vite-svelte
-        ```
-7. **指定dev路径**（如果已经进行了第六步，请勿进行此步）
-    - 打开 `./scripts/make_dev_link.js` 文件，更改 `targetDir` 为思源的插件目录 `<siyuan workspace>/data/plugins`
-    - 运行 `pnpm run change-dir` 命令；
-8. 执行 `pnpm run dev` 进行实时编译
-9. 在思源中打开集市并在下载选项卡中启用插件
+## 反馈bug
 
+（推荐）请前往[github仓库](https://github.com/OpaqueGlass/syplugin-doubleClickFileTree)反馈问题。
 
-> 注意由于使用的 make-link 脚本依赖于 `fetch`，所以如果想要使用 make-link **请保证至少安装 v18 版本的 nodejs**
+如果您无法访问github，请[在此反馈](https://wj.qq.com/s2/12395364/b69f/)。
 
+## 参考&感谢
 
-## 国际化
+代码贡献者（开发者）详见[贡献者列表](https://github.com/OpaqueGlass/syplugin-doubleClickFileTree/graphs/contributors)。
 
-国际化方面我们主要考虑的是支持多语言，具体需要完成以下工作：
-
-* 插件自身的元信息，比如插件描述和自述文件
-  * plugin.json 中的 `description` 和 `readme` 字段，以及对应的 README*.md 文件
-* 插件中使用的文本，比如按钮文字和提示信息
-  * src/i18n/*.json 语言配置文件
-  * 代码中使用 `this.i18.key` 获取文本
-* 最后在 plugin.json 中的 `i18n` 字段中声明该插件支持的语言
-
-建议插件至少支持英文和简体中文，这样可以方便更多人使用。
-
-## plugin.json
-
-```json
-{
-  "name": "plugin-sample-vite-svelte",
-  "author": "frostime",
-  "url": "https://github.com/siyuan-note/plugin-sample-vite-svelte",
-  "version": "0.1.3",
-  "minAppVersion": "2.8.8",
-  "backends": ["windows", "linux", "darwin"],
-  "frontends": ["desktop"],
-  "displayName": {
-    "en_US": "Plugin sample with vite and svelte",
-    "zh_CN": "插件样例 vite + svelte 版"
-  },
-  "description": {
-    "en_US": "SiYuan plugin sample with vite and svelte",
-    "zh_CN": "使用 vite 和 svelte 开发的思源插件样例"
-  },
-  "readme": {
-    "en_US": "README_en_US.md",
-    "zh_CN": "README.md"
-  },
-  "funding": {
-    "openCollective": "",
-    "patreon": "",
-    "github": "",
-    "custom": [
-      "https://ld246.com/sponsor"
-    ]
-  }
-}
-```
-
-* `name`：插件名称，必须和库名一致，且全局唯一（集市中不能有重名插件）
-* `author`：插件作者名
-* `url`：插件仓库地址
-* `version`：插件版本号，建议遵循 [semver](https://semver.org/lang/zh-CN/) 规范
-* `minAppVersion`：插件支持的最低思源笔记版本号
-* `backends`：插件需要的后端环境，可选值为 `windows`, `linux`, `darwin`, `docker`, `android`, `ios`, `harmony` and `all`
-  * `windows`：Windows 桌面端
-  * `linux`：Linux 桌面端
-  * `darwin`：macOS 桌面端
-  * `docker`：Docker 端
-  * `android`：Android 端
-  * `ios`：iOS 端
-  * `harmony`：鸿蒙
-  * `all`：所有环境
-* `frontends`：插件需要的前端环境，可选值为 `desktop`, `desktop-window`, `mobile`, `browser-desktop`, `browser-mobile` and `all`
-  * `desktop`：桌面端
-  * `desktop-window`：桌面端页签转换的独立窗口
-  * `mobile`：移动端
-  * `browser-desktop`：桌面端浏览器
-  * `browser-mobile`：移动端浏览器
-  * `all`：所有环境
-* `displayName`：模板显示名称，主要用于模板集市列表中显示，支持多语言
-  * `default`：默认语言，必须存在
-  * `zh_CN`、`en_US` 等其他语言：可选，建议至少提供中文和英文
-* `description`：插件描述，主要用于插件集市列表中显示，支持多语言
-  * `default`：默认语言，必须存在
-  * `zh_CN`、`en_US` 等其他语言：可选，建议至少提供中文和英文
-* `readme`：自述文件名，主要用于插件集市详情页中显示，支持多语言
-  * `default`：默认语言，必须存在
-  * `zh_CN`、`en_US` 等其他语言：可选，建议至少提供中文和英文
-* `funding`：插件赞助信息
-  * `openCollective`：Open Collective 名称
-  * `patreon`：Patreon 名称
-  * `github`：GitHub 登录名
-  * `custom`：自定义赞助链接列表
-
-## 打包
-
-无论使用何种方式编译打包，我们最终需要生成一个 package.zip，它至少包含如下文件：
-
-* i18n/*
-* icon.png (160*160)
-* index.css
-* index.js
-* plugin.json
-* preview.png (1024*768)
-* README*.md
-
-## 上架集市
-
-* 执行 `pnpm run build` 生成 package.zip
-* 在 GitHub 上创建一个新的发布，使用插件版本号作为 “Tag
-  version”，示例 https://github.com/siyuan-note/plugin-sample/releases
-* 上传 package.zip 作为二进制附件
-* 提交发布
-
-如果是第一次发布版本，还需要创建一个 PR 到 [Community Bazaar](https://github.com/siyuan-note/bazaar) 社区集市仓库，修改该库的
-plugins.json。该文件是所有社区插件库的索引，格式为：
-
-```json
-{
-  "repos": [
-    "username/reponame"
-  ]
-}
-```
-
-PR 被合并以后集市会通过 GitHub Actions 自动更新索引并部署。后续发布新版本插件时只需要按照上述步骤创建新的发布即可，不需要再
-PR 社区集市仓库。
-
-正常情况下，社区集市仓库每隔 1 小时会自动更新索引并部署，可在 https://github.com/siyuan-note/bazaar/actions 查看部署状态。
-
-## 使用 Github action 自动发布
-
-样例中自带了 github action，可以自动打包发布，请遵循以下操作：
-
-1. 设置项目 `https://github.com/OWNER/REPO/settings/actions` 页面向下划到 **Workflow Permissions**，打开配置
-
-    ![](asset/action.png)
-
-2. 需要发布版本的时候，push 一个格式为 `v*` 的 tag，github 就会自动打包发布 release（包括 package.zip）
-
-3. `scripts/.release.py`可以获取示例格式的`CHANGELOG.md`中最新版本的信息，并将更新内容作为release的正文。
+| 开发者/项目                                                  | 描述                                                         | 说明                         |
+| ------------------------------------------------------------ | ------------------------------------------------------------ | ---------------------------- |
+| [zxkmm](https://github.com/zxkmm)/[文档树自定义插件](https://github.com/zxkmm/siyuan_doctree_compress) | 提供多达20余项功能，包括 流动布局/ 缩进调节/ 隐藏气泡/ 屏蔽按钮/ 字体大小/ 鼠标悬浮/ 层级竖线/ 分割线/ 等等，完全自定义您的文档树 / [MIT License](https://github.com/zxkmm/siyuan_doctree_compress#MIT-1-ov-file) | 屏蔽文档树图标悬停提示的方法（CSS） |
+| [QQQOrange](https://github.com/QQQOrange) | N/A | 参与测试和（或）积极反馈 |
