@@ -41,9 +41,9 @@ export class ConfigProperty {
         this.configName = lang(`setting_${key}_name`);
         this.description = lang(`setting_${key}_desp`);
         if (this.configName.startsWith("🧪")) {
-            this.description = lang("setting_experimental") + this.description;
+            this.description = this.description + lang("setting_experimental");
         } else if (this.configName.startsWith("✈")) {
-            this.description = lang("setting_testing") + this.description;
+            this.description = this.description + lang("setting_testing");
         } else if (this.configName.startsWith("❌")) {
             this.description = lang("setting_deprecated") + this.description;
         }

@@ -250,4 +250,27 @@ aria-label="${ariaLabel}">${escapeHTML(item.name)}</span>
         const escapeMethod = escapeHTML;
         return `${escapeMethod(item.name)} <small class='ft__on-surface'>${item.hSize}</small>${item.bookmark ? "<br>" + window.siyuan.languages.bookmark + " " + escapeMethod(item.bookmark) : ""}${item.name1 ? "<br>" + window.siyuan.languages.name + " " + escapeMethod(item.name1) : ""}${item.alias ? "<br>" + window.siyuan.languages.alias + " " + escapeMethod(item.alias) : ""}${item.memo ? "<br>" + window.siyuan.languages.memo + " " + escapeMethod(item.memo) : ""}${item.subFileCount !== 0 ? window.siyuan.languages.includeSubFile.replace("x", item.subFileCount) : ""}<br>${window.siyuan.languages.modifiedAt} ${item.hMtime}<br>${window.siyuan.languages.createdAt} ${item.hCtime}`;
     }
+
+    protected getSingleClickDelay(_ctx: ClickDispatchContext, dblclickDelay: number): number {
+        const setting = getReadOnlyGSettings();
+        if (!setting.revertBehavior) {
+            const itemElem = _ctx.itemElement;
+            const toggleElem = itemElem?.querySelector(".b3-list-item__toggle");
+            if (toggleElem && toggleElem.classList.contains("fn__hidden")) {
+                debugPush("点击目标非文件夹，直接执行打开任务，单击延迟设置为0");
+                return 0;
+            }
+        } else {
+            // 启用交换逻辑
+            if (setting.treatAsFolder) {
+                const itemElem = _ctx.itemElement;
+                const toggleElem = itemElem?.querySelector(".b3-list-item__toggle");
+                if (toggleElem) {
+                    debugPush("启用将父文档视为文件夹，点击目标存在展开按钮，直接执行打开任务，单击延迟设置为0；不存在时，对应直接直接展开，也不需要延迟");
+                    return 0;
+                }
+            }
+        }
+        return dblclickDelay;
+    }
 }

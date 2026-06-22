@@ -2,6 +2,7 @@ import { getReadOnlyGSettings } from "@/manager/settingManager";
 import type { ClickDispatchContext } from "../types";
 import { debugPush } from "@/logger";
 import { CLICK_SOURCE_TYPE } from "@/constants";
+import { isMobile } from "@/syapi";
 
 export default abstract class PanelClickCallbackBase {
     private recentClickedAt = 0;
@@ -31,7 +32,9 @@ export default abstract class PanelClickCallbackBase {
 
         debugPush("timegap", timeGap, "recentClickedId", this.recentClickedId, "currentId", currentId, "dblclickDelay", dblclickDelay, "event.detail", ctx.event.detail);
         // (timeGap > dblclickDelay || currentId !== this.recentClickedId) && 
-        if (detailClick === 1) {
+        // 移动端不支持detail判定单双击
+        const mobileFlag = isMobile();
+        if ((detailClick === 1 && !mobileFlag) || ((timeGap > dblclickDelay || currentId !== this.recentClickedId) && mobileFlag)) {
             // window.clearTimeout(this.recentClickTimer ?? undefined);
             this.stopEvent(ctx.event);
             this.recentClickTimer = null;
@@ -51,7 +54,7 @@ export default abstract class PanelClickCallbackBase {
         window.clearTimeout(this.recentClickTimer ?? undefined);
         this.recentClickTimer = null;
         this.recentClickedAt = 0;
-        if (detailClick !== 1 && this.handleDoubleAction(ctx)) {
+        if ((detailClick !== 1 || mobileFlag) && this.handleDoubleAction(ctx)) {
             this.recentClickedId = null;
             this.stopEvent(ctx.event);
         }

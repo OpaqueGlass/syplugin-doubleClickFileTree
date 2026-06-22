@@ -30,6 +30,7 @@ interface IPluginSettings {
     enableMobile?: boolean;
     sameToTag?: boolean;
     debugMode?: boolean;
+    treatAsFolder?: boolean,
 };
 let defaultSetting: IPluginSettings = {
     dblclickShowSubDoc: true,
@@ -47,6 +48,7 @@ let defaultSetting: IPluginSettings = {
     enableMobile: false,
     sameToTag: false,
     debugMode: false,
+    treatAsFolder: false,
 }
 
 
@@ -70,6 +72,8 @@ export function initSettingProperty() {
                 new ConfigProperty({ key: "disableChangeIcon", type: "SWITCH" }),
                 new ConfigProperty({ key: "unfoldSubDocsWhileOpenParent", type: "SELECT", options: ["0", "1", "2"] }),
                 new ConfigProperty({ key: "extendClickArea", type: "SWITCH" }),
+                new ConfigProperty({ key: "treatAsFolder", type: "SWITCH" }),
+
                 new ConfigProperty({ key: "sameToOutline", type: "SWITCH" }),
                 new ConfigProperty({ key: "sameToTag", type: "SWITCH" }),
                 new ConfigProperty({ key: "applyToDialog", type: "SWITCH" }),
@@ -119,12 +123,24 @@ export async function loadSettings() {
         }
     }
     const currentVersion = 20260620;
+    let fromOldVersionFlag = false;
     if (!loadResult["@version"] || loadResult["@version"] < currentVersion) {
         // 旧版本
+        debugPush("旧版本设置项，进行迁移", loadResult);
         loadResult["@version"] = currentVersion;
         if (siyuan.getAllEditor == null) {
             loadResult["immediatelyUpdate"] = false;
         }
+        if (loadResult["revertBehavior"] === true) {
+            loadResult["treatAsFolder"] = true;
+        }
+        if (loadResult["dblclickDelay"] < 200) {
+            loadResult["dblclickDelay"] = 200;
+        }
+        if (loadResult["dblclickDelay"] > 400) {
+            loadResult["dblclickDelay"] = 400;
+        }
+        fromOldVersionFlag = true;
         // 检查数组中指定设置和defaultSetting是否一致
         showOutdatedSettingWarnDialog(checkOutdatedSettings(loadResult), defaultSetting);
     }
@@ -134,6 +150,10 @@ export async function loadSettings() {
         loadResult = checkSettingType(loadResult);
     } catch(err) {
         logPush("设置项类型检查时发生错误", err);
+    }
+
+    if (fromOldVersionFlag) {
+        saveSettings(loadResult);
     }
     
     // 如果有必要，判断设置项是否对当前设备生效

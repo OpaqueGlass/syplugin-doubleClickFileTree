@@ -218,14 +218,15 @@ export default abstract class TreeClickCallbackBase extends PanelClickCallbackBa
                 debugPush("打开文档", targetNodeId);
                 this.clearFocusedItem(souceType);
                 sourceElem.classList.add("b3-list-item--focus");
-
                 const setting = getReadOnlyGSettings();
-                if (setting.unfoldSubDocsWhileOpenParent !== 0) {
+                if (setting.unfoldSubDocsWhileOpenParent != 0) {
                     const b3ListItemToggle = sourceElem.querySelector(".b3-list-item__toggle") as HTMLElement | null;
                     const child = b3ListItemToggle?.querySelector(".b3-list-item__arrow--open");
-                    if (child && setting.unfoldSubDocsWhileOpenParent === 2) {
+                    if (child && setting.unfoldSubDocsWhileOpenParent == 2) {
                         debugPush("节点已经展开，根据要求不收起");
-                    } else if (b3ListItemToggle) {
+                    } else if (b3ListItemToggle && !(setting.revertBehavior && setting.treatAsFolder)) {
+                        // 如果启用了“将文档视为文件夹”，则不执行展开操作，否则会和单击操作出现冲突
+                        debugPush("同时操作展开");
                         this.pluginClickToggle = true;
                         b3ListItemToggle.click();
                     }
@@ -337,6 +338,19 @@ export default abstract class TreeClickCallbackBase extends PanelClickCallbackBa
                 break;
         }
         return souceType;
+    }
+
+    protected getSingleClickDelay(_ctx: ClickDispatchContext, dblclickDelay: number): number {
+        const setting = getReadOnlyGSettings();
+        if (!setting.revertBehavior) {
+            const itemElem = _ctx.itemElement;
+            const toggleElem = itemElem?.querySelector(".b3-list-item__toggle");
+            if (toggleElem && toggleElem.classList.contains("fn__hidden")) {
+                debugPush("点击目标非文件夹，直接执行打开任务，单击延迟设置为0");
+                return 0;
+            }
+        }
+        return dblclickDelay;
     }
 
     protected abstract getOpenActionType(): "openDoc" | "rawClick" | "trueClick";
