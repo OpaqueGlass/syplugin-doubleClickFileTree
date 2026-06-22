@@ -32,12 +32,13 @@ export default abstract class PanelClickCallbackBase {
         debugPush("timegap", timeGap, "recentClickedId", this.recentClickedId, "currentId", currentId, "dblclickDelay", dblclickDelay, "event.detail", ctx.event.detail);
         // (timeGap > dblclickDelay || currentId !== this.recentClickedId) && 
         if (detailClick === 1) {
-            window.clearTimeout(this.recentClickTimer ?? undefined);
+            // window.clearTimeout(this.recentClickTimer ?? undefined);
             this.stopEvent(ctx.event);
             this.recentClickTimer = null;
             this.recentClickedId = currentId;
 
-            this.recentClickTimer = window.setTimeout(() => {
+            this.recentClickTimer = setTimeout(() => {
+                debugPush("单击处理超时，执行单击操作", this.recentClickedId);
                 this.recentClickedAt = 0;
                 this.recentClickTimer = null;
                 this.handleSingleAction(ctx);
@@ -46,7 +47,7 @@ export default abstract class PanelClickCallbackBase {
             this.afterHandleSingleQueued(ctx);
             return;
         }
-
+        debugPush("双击处理，执行双击操作", this.recentClickedId);
         window.clearTimeout(this.recentClickTimer ?? undefined);
         this.recentClickTimer = null;
         this.recentClickedAt = 0;

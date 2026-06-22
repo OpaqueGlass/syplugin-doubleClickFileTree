@@ -1,5 +1,6 @@
 import PanelController, { PanelControllerOptions } from "./panelController";
 import OutlineClickCallback from "./callbacks/outlineClickCallback";
+import { isMobile } from "@/syapi";
 
 export default class OutlinePanelController extends PanelController {
     constructor(options: Omit<PanelControllerOptions, "panelType">) {
@@ -7,7 +8,10 @@ export default class OutlinePanelController extends PanelController {
     }
 
     protected getRootSelectors(): string[] {
-        return [".sy__outline", "#sidebar [data-type='sidebar-outline']"];
+        if (isMobile()) {
+            return ["#sidebar [data-type='sidebar-outline']"];
+        }
+        return [".sy__outline"];
     }
 
     protected resolveItemElement(target: EventTarget | null): HTMLElement | null {

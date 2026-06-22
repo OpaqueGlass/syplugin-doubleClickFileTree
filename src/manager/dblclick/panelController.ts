@@ -12,7 +12,7 @@ export default abstract class PanelController {
     protected readonly callbacks: PanelClickCallbackBase;
     protected readonly runtime: () => InteractionRuntimeOptions;
 
-    protected retryInterval: number | null = null;
+    protected retryInterval: { [key: string]: number } = {};
 
     private readonly boundRoots = new Set<Element>();
 
@@ -33,13 +33,13 @@ export default abstract class PanelController {
                 binded = true;
             });
             if (!binded) {
-                clearInterval(this.retryInterval!);
-                this.retryInterval = window.setInterval(() => {
+                clearInterval(this.retryInterval[selector]);
+                this.retryInterval[selector] = window.setInterval(() => {
                     this.bind();
                 }, 1000);
             } else {
-                clearInterval(this.retryInterval!);
-                this.retryInterval = null;
+                clearInterval(this.retryInterval[selector]);
+                this.retryInterval[selector] = null;
             }
         });
     }

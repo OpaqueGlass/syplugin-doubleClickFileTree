@@ -1,5 +1,6 @@
 import PanelController, { PanelControllerOptions } from "./panelController";
 import TagClickCallback from "./callbacks/tagClickCallback";
+import { isMobile } from "@/syapi";
 
 export default class TagPanelController extends PanelController {
     constructor(options: Omit<PanelControllerOptions, "panelType">) {
@@ -7,7 +8,10 @@ export default class TagPanelController extends PanelController {
     }
 
     protected getRootSelectors(): string[] {
-        return [".sy__tag", "#sidebar [data-type='sidebar-tag']"];
+        if (isMobile()) {
+            return ["#sidebar [data-type='sidebar-tag']"];
+        }
+        return [".sy__tag"];
     }
 
     protected resolveItemElement(target: EventTarget | null): HTMLElement | null {

@@ -33,7 +33,7 @@ interface IPluginSettings {
 };
 let defaultSetting: IPluginSettings = {
     dblclickShowSubDoc: true,
-    prefetchSubDocsForDoubleClick: true,
+    prefetchSubDocsForDoubleClick: false,
     dblclickDelay: 200,
     disableChangeIcon: false,
     revertBehavior: false,

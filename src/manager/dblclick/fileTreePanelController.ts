@@ -1,5 +1,6 @@
 import PanelController, { PanelControllerOptions } from "./panelController";
 import FileTreeClickCallback from "./callbacks/fileTreeClickCallback";
+import { isMobile } from "@/syapi";
 
 export default class FileTreePanelController extends PanelController {
     constructor(options: Omit<PanelControllerOptions, "panelType">) {
@@ -7,7 +8,10 @@ export default class FileTreePanelController extends PanelController {
     }
 
     protected getRootSelectors(): string[] {
-        return [".sy__file", "#sidebar [data-type='sidebar-file']"];
+        if (isMobile()) {
+            return ["#sidebar [data-type='sidebar-file']"];
+        }
+        return [".sy__file"];
     }
 
     protected resolveItemElement(target: EventTarget | null): HTMLElement | null {
