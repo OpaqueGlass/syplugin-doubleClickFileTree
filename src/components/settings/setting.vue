@@ -15,7 +15,7 @@
             <!-- TODO: 这里换成v-for根据列表生成，不再手动填充了 -->
             <!-- 在Page上通过当前显示的标签页名称key一致匹配确定是否显示这个标签页 -->
             <Page v-for="(tab, index) in tabList" v-show="activeTab === tab.key">
-                <Column :hide="!tab.isColumn" :column-keys="tab.columnKeys" :column-names="tab.columnNames" >
+                <component :is="tab.showColumnAsGroup ? Group : Column" :hide="!tab.isColumn" :column-keys="tab.columnKeys" :column-names="tab.columnNames" >
                     <template #[key] v-for="(items, key) in tab.props">
                         <template v-for="(item, index) in items">
                             <template v-if="['TEXTAREA', 'CUSTOM', 'ORDER', 'TIPS'].indexOf(item.type) == -1">
@@ -63,7 +63,7 @@
                         </template>
                     </template>
                     
-                </Column>
+                </component>
                 
 
                 
@@ -87,6 +87,7 @@ import Textarea from './items/textarea.vue';
 // import Order from './items/order.vue'; // 由于sortablejs默认对document绑定事件，在不需要使用该功能的插件上可能影响性能，本模板自v0.1.0其默认禁用；要使用此依赖，需要重新引入sortablejs，一并取消上面ORDER类型的注释；
 import { getGSettings, getTabProperties } from '@/manager/settingManager';
 import PathSelector from './items/pathSelector.vue';
+import Group from './group.vue';
 
 // const props = defineProps<{
 //     tabs: Array<ITabProperty>

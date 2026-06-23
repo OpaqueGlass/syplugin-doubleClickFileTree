@@ -2,7 +2,11 @@
   "button_save": "Save",
   "button_cancel": "Cancel",
   "setting_panel_title": "Plugin Settings: ",
-  
+
+  "setting_column_behavior_name": "Behavior",
+  "setting_column_panel_name": "Panel & Scope",
+  "setting_column_advanced_name": "Advanced",
+  "setting_column_other_name": "Other",
   
   "setting_dblclickShowSubDoc_name": "Enable double-click functionality",
   "setting_dblclickShowSubDoc_desp": "If you don't use the double-click functionality, disabling it will reduce single-click latency (equivalent to setting the double-click detection period to 0). However, regardless of whether it's enabled or disabled, the plugin will handle left-click events on document items in the document tree. Note that this may be incompatible with other plugins or code snippets.",
@@ -23,7 +27,7 @@
   "setting_unfoldSubDocsWhileOpenParent_option_2": "Enable, but only unfold",
   "setting_sameToOutline_name": "🧪he same applies to the outline panel.",
   "setting_sameToOutline_desp": "After enabling this feature, the aforementioned logic will be applied to the outline panel as well. However, there may be performance issues such as lagging when navigating in the outline and scrolling issues after navigation, especially for dynamically loaded documents. It is recommended to disable this feature in such cases.",
-  "setting_openToTop_name": "🧪After opening the document, do not navigate to a history location.",
+  "setting_openToTop_name": "❌After opening the document, do not navigate to a history location.",
   "setting_openToTop_desp": "After enabling this feature, opening a document will no longer navigate to the last edited position.",
   "setting_applyToDialog_name": "The same logic applies to the document selector in the dialogue",
   "setting_applyToDialog_desp": "When selecting a document within a dialog box, apply the aforementioned logic",
@@ -31,9 +35,9 @@
   "setting_enableMobile_desp": "",
   "setting_sameToTag_name": "The same applies to the tag panel.",
   "setting_sameToTag_desp": "After enabling this feature, the aforementioned logic will be applied to the tag panel as well. ",
-  "setting_lastModifyBlockHint_name": "🧪Last Modified Block Hint",
+  "setting_lastModifyBlockHint_name": "❌Last Modified Block Hint",
   "setting_lastModifyBlockHint_desp": "Provides a hint of the last recorded clicked block position when opening a document. This feature is only meaningful when the 'Do Not Navigate to Last Edited Position' option is enabled.",
-  "setting_ignoreModifyHintIds_name": "🧪Ignore the document ID for the last modified block hint.",
+  "setting_ignoreModifyHintIds_name": "❌Ignore the document ID for the last modified block hint.",
   "setting_ignoreModifyHintIds_desp": "Please fill in the document IDs here, separated by commas. These documents will not display the last modified block hint. To block sub-documents, use the parent document ID followed by a slash (/).",
   "setting_treatAsFolder_name": "🧪Treat Documents as Folders",
   "setting_treatAsFolder_desp": "When enabled, documents will be treated as folders, and clicking them will immediately expand/collapse them (unless the 'Swap Logic' is also enabled)",
@@ -44,6 +48,7 @@
   "setting_debugMode_desp": "When enabled, additional logs will be output to the console; if you encounter issues, please enable this option and provide the logs to the developer; if you don't encounter any issues, it's recommended to disable this option to improve performance",
 
   "setting_experimental": "(Experimental Feature. UNSTABLE. May be removed at any time) ",
+  "setting_deprecated": "(Deprecated Feature. May be removed at any time) ",
   "error_initFailed": "Double-click-file-tree (File tree enhance) Plugin initialization failed, please report this issue to developer at your convenience",
 
   

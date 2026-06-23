@@ -2,7 +2,7 @@
  * 设置、设置标签页定义
  * 请注意，设置项的初始化应该在语言文件加载后进行
  */
-import { isValidStr } from "./commonCheck";
+import { isCurrentVersionLessThan, isValidStr } from "./commonCheck";
 import { lang } from "./lang";
 
 interface IConfigProperty {
@@ -62,7 +62,8 @@ export class ConfigProperty {
 interface ITabProperty {
     key: string,
     props: Array<ConfigProperty>|Record<string, Array<ConfigProperty>>,
-    iconKey?: string
+    iconKey?: string,
+    showColumnAsGroup?: boolean
 }
 
 export class TabProperty {
@@ -72,9 +73,11 @@ export class TabProperty {
     isColumn: boolean = false;
     columnNames: Array<string> = new Array<string>();
     columnKeys: Array<string> = new Array<string>();
+    showColumnAsGroup: boolean = false;
 
-    constructor({key, props, iconKey}: ITabProperty){
+    constructor({key, props, iconKey, showColumnAsGroup}: ITabProperty){
         this.key = key;
+        this.showColumnAsGroup = (showColumnAsGroup ?? false) && !isCurrentVersionLessThan("3.7.0");
         if (isValidStr(iconKey)) {
             this.iconKey = iconKey;
         } else {

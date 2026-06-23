@@ -64,27 +64,33 @@ let updateTimeout: any = null;
 export function initSettingProperty() {
     tabProperties.push(
         new TabProperty({
-            key: "general", iconKey: "iconSettings", props: [
-                new ConfigProperty({ key: "dblclickShowSubDoc", type: "SWITCH" }),
-                new ConfigProperty({ key: "prefetchSubDocsForDoubleClick", type: "SWITCH" }),
-                new ConfigProperty({ key: "dblclickDelay", type: "NUMBER", min: 50, max: 1200 }),
-                new ConfigProperty({ key: "revertBehavior", type: "SWITCH" }),
-                new ConfigProperty({ key: "disableChangeIcon", type: "SWITCH" }),
-                new ConfigProperty({ key: "unfoldSubDocsWhileOpenParent", type: "SELECT", options: ["0", "1", "2"] }),
-                new ConfigProperty({ key: "extendClickArea", type: "SWITCH" }),
-                new ConfigProperty({ key: "treatAsFolder", type: "SWITCH" }),
+            key: "general", iconKey: "iconSettings", showColumnAsGroup: true, props: {
+                "behavior": [
+                    new ConfigProperty({ key: "dblclickShowSubDoc", type: "SWITCH" }),
+                    new ConfigProperty({ key: "revertBehavior", type: "SWITCH" }),
+                    new ConfigProperty({ key: "treatAsFolder", type: "SWITCH" }),
+                    new ConfigProperty({ key: "disableChangeIcon", type: "SWITCH" }),
+                    new ConfigProperty({ key: "unfoldSubDocsWhileOpenParent", type: "SELECT", options: ["0", "1", "2"] }),
+                ],
+                "panel": [
+                    new ConfigProperty({ key: "sameToOutline", type: "SWITCH" }),
+                    new ConfigProperty({ key: "sameToTag", type: "SWITCH" }),
+                    new ConfigProperty({ key: "applyToDialog", type: "SWITCH" }),
+                    new ConfigProperty({ key: "enableMobile", type: "SWITCH" }),
+                    new ConfigProperty({ key: "extendClickArea", type: "SWITCH" }),
+                ],
+                "advanced": [
+                    new ConfigProperty({ key: "dblclickDelay", type: "NUMBER", min: 50, max: 1200 }),
+                    new ConfigProperty({ key: "prefetchSubDocsForDoubleClick", type: "SWITCH" }),
 
-                new ConfigProperty({ key: "sameToOutline", type: "SWITCH" }),
-                new ConfigProperty({ key: "sameToTag", type: "SWITCH" }),
-                new ConfigProperty({ key: "applyToDialog", type: "SWITCH" }),
-                new ConfigProperty({ key: "enableMobile", type: "SWITCH" }),
-
-                new ConfigProperty({ key: "openToTop", type: "SWITCH" }),
-                new ConfigProperty({ key: "lastModifyBlockHint", type: "SWITCH" }),
-                new ConfigProperty({ key: "ignoreModifyHintIds", type: "TEXTAREA" }),
-
-                new ConfigProperty({ key: "debugMode", type: "SWITCH" }),
-            ]
+                ],
+                "other": [
+                    new ConfigProperty({ key: "openToTop", type: "SWITCH" }),
+                    new ConfigProperty({ key: "lastModifyBlockHint", type: "SWITCH" }),
+                    new ConfigProperty({ key: "ignoreModifyHintIds", type: "TEXTAREA" }),
+                    new ConfigProperty({ key: "debugMode", type: "SWITCH" }),
+                ]
+            }
         }),
     );
 }
