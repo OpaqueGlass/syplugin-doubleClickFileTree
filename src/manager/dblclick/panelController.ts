@@ -12,7 +12,7 @@ export default abstract class PanelController {
     protected readonly callbacks: PanelClickCallbackBase;
     protected readonly runtime: () => InteractionRuntimeOptions;
 
-    protected retryInterval: { [key: string]: number } = {};
+    protected retryTimeout: { [key: string]: number } = {};
 
     private readonly boundRoots = new Set<Element>();
 
@@ -33,13 +33,13 @@ export default abstract class PanelController {
                 binded = true;
             });
             if (!binded) {
-                clearInterval(this.retryInterval[selector]);
-                this.retryInterval[selector] = window.setInterval(() => {
+                clearTimeout(this.retryTimeout[selector]);
+                this.retryTimeout[selector] = window.setTimeout(() => {
                     this.bind();
                 }, 1000);
             } else {
-                clearInterval(this.retryInterval[selector]);
-                this.retryInterval[selector] = null;
+                clearTimeout(this.retryTimeout[selector]);
+                this.retryTimeout[selector] = null;
             }
         });
     }
@@ -48,6 +48,10 @@ export default abstract class PanelController {
         const { capture } = this.runtime();
         this.boundRoots.forEach((root) => {
             root.removeEventListener("click", this.onRootClick, capture);
+        });
+        Object.keys(this.retryTimeout).forEach((key) => {
+            clearTimeout(this.retryTimeout[key]);
+            this.retryTimeout[key] = null;
         });
         this.boundRoots.clear();
         this.callbacks.dispose();

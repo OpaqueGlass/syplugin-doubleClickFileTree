@@ -187,8 +187,9 @@ export async function loadSettings() {
             // logPush("保存设置项", newVal);
             setStyle();
             changeDebug(newVal);
+            getPluginInstance()?.rebindEventHandler();
             updateTimeout = null;
-        }, 1000);
+        }, 700);
     }, {deep: true, immediate: false});
 }
 

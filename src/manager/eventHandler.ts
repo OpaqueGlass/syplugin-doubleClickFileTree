@@ -3,6 +3,8 @@ import { getReadOnlyGSettings } from "@/manager/settingManager";
 import TreeInteractionManager from "./dblclick/treeInteractionManager";
 import RecentModifyHintManager from "./recentModifyHint";
 import DialogClickBinder from "./dialogClickBinder";
+import { isMobile } from "@/syapi";
+import { debugPush } from "@/logger";
 export default class EventHandler {
     private handlerBindList: Record<string, (arg1: CustomEvent)=>void> = {
         "loaded-protyle-static": this.loadedProtyleStaticHandler.bind(this),
@@ -38,6 +40,10 @@ export default class EventHandler {
             if (this.relateGsettingKeyStr[key] == null || g_setting[this.relateGsettingKeyStr[key]]) {
                 plugin.eventBus.on(key, this.handlerBindList[key]);
             }
+        }
+        if (!g_setting.enableMobile && isMobile()) {
+            debugPush("移动端未启用接管，跳过绑定");
+            return;
         }
         this.treeInteractionManager.bind();
         if (g_setting.applyToDialog) {

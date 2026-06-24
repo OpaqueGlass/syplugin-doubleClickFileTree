@@ -7,6 +7,8 @@ import type PanelClickCallbackBase from "./callbacks/panelClickCallbackBase";
 import FileTreeClickCallback from "./callbacks/fileTreeClickCallback";
 import OutlineClickCallback from "./callbacks/outlineClickCallback";
 import TagClickCallback from "./callbacks/tagClickCallback";
+import { getReadOnlyGSettings } from "../settingManager";
+import { debugPush } from "@/logger";
 
 export interface TreeInteractionManagerOptions {
     getDelay: () => number;
@@ -50,9 +52,18 @@ export default class TreeInteractionManager {
     }
 
     bind() {
+        const setting = getReadOnlyGSettings();
+        if (!setting.enableMobile && isMobile()) {
+            debugPush("移动端未启用接管，跳过绑定");
+            return;
+        }
         this.fileTreeController.bind();
-        this.outlineController.bind();
-        this.tagController.bind();
+        if (setting.sameToOutline) {
+            this.outlineController.bind();
+        }
+        if (setting.sameToTag) {
+            this.tagController.bind();
+        }
     }
 
     unbind() {

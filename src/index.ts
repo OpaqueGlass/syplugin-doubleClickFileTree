@@ -63,6 +63,11 @@ export default class OGSamplePlugin extends Plugin {
         }
     }
 
+    rebindEventHandler() {
+        this.myEventHandler.unbindHandler();
+        this.myEventHandler.bindHandler();
+    }
+
     openSetting() {
         // 生成Dialog内容
         const uid = generateUUID();

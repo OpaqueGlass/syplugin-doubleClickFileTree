@@ -42,10 +42,12 @@ export default abstract class PanelClickCallbackBase {
 
             this.recentClickTimer = setTimeout(() => {
                 debugPush("单击处理超时，执行单击操作", this.recentClickedId);
-                this.recentClickedAt = 0;
                 this.recentClickTimer = null;
                 this.handleSingleAction(ctx);
-                this.recentClickedId = null;
+                if (!(settings.treatAsFolder && mobileFlag && settings.revertBehavior)) {
+                    this.recentClickedAt = 0;
+                    this.recentClickedId = null;
+                }
             }, this.getSingleClickDelay(ctx, dblclickDelay));
             this.afterHandleSingleQueued(ctx);
             return;

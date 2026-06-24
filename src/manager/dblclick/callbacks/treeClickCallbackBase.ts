@@ -132,7 +132,8 @@ export default abstract class TreeClickCallbackBase extends PanelClickCallbackBa
             b3ListItemToggle.click();
             debugPush("展开层级成功");
         } else {
-            this.openDocByTreeItemElement(sourceElem);
+            // 【FAST_FORWARD】无子层级，需要走打开逻辑
+            this.clickToOpenMulitWayDistributor(ctx);
         }
     }
 
