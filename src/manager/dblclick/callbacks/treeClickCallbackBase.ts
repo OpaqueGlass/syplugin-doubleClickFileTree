@@ -349,6 +349,16 @@ export default abstract class TreeClickCallbackBase extends PanelClickCallbackBa
                 debugPush("点击目标非文件夹，直接执行打开任务，单击延迟设置为0");
                 return 0;
             }
+        } else {
+            // 启用交换逻辑
+            if (setting.treatAsFolder) {
+                const itemElem = _ctx.itemElement;
+                const toggleElem = itemElem?.querySelector(".b3-list-item__toggle");
+                if (toggleElem) {
+                    debugPush("启用将父文档视为文件夹，点击目标存在展开按钮，直接执行打开任务，单击延迟设置为0；不存在时，对应直接直接展开，也不需要延迟");
+                    return 0;
+                }
+            }
         }
         return dblclickDelay;
     }

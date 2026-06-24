@@ -71,6 +71,7 @@ export function initSettingProperty() {
                     new ConfigProperty({ key: "treatAsFolder", type: "SWITCH" }),
                     new ConfigProperty({ key: "disableChangeIcon", type: "SWITCH" }),
                     new ConfigProperty({ key: "unfoldSubDocsWhileOpenParent", type: "SELECT", options: ["0", "1", "2"] }),
+                    new ConfigProperty({ key: "aboutAuthor", type: "TIPS" }),
                 ],
                 "panel": [
                     new ConfigProperty({ key: "sameToOutline", type: "SWITCH" }),
@@ -89,6 +90,7 @@ export function initSettingProperty() {
                     new ConfigProperty({ key: "lastModifyBlockHint", type: "SWITCH" }),
                     new ConfigProperty({ key: "ignoreModifyHintIds", type: "TEXTAREA" }),
                     new ConfigProperty({ key: "debugMode", type: "SWITCH" }),
+                    new ConfigProperty({ key: "aboutAuthor", type: "TIPS" }),
                 ]
             }
         }),
