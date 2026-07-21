@@ -7,6 +7,7 @@ import { getPluginInstance } from "@/utils/pluginHelper";
 import PanelClickCallbackBase from "./panelClickCallbackBase";
 import type { ClickDispatchContext } from "../types";
 import { CLICK_SOURCE_TYPE } from "@/constants";
+import { isNotebookDocEnabled } from "@/utils/compatUtils";
 
 export type TreePanelKind = "fileTree" | "outline";
 
@@ -332,6 +333,10 @@ export default abstract class TreeClickCallbackBase extends PanelClickCallbackBa
                 break;
             case "navigation-root":
                 souceType = CLICK_SOURCE_TYPE.NOTEBOOK;
+                if (isNotebookDocEnabled()) {
+                    debugPush("启用笔记本文档功能，使用FILE_TREE逻辑");
+                    souceType = CLICK_SOURCE_TYPE.FILE_TREE;
+                }
                 break;
             default:
                 logPush("未能识别的sourceElement类型，使用默认配置 FILE_TREE");
