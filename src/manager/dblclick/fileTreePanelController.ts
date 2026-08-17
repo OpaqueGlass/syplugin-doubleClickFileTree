@@ -2,6 +2,7 @@ import PanelController, { PanelControllerOptions } from "./panelController";
 import FileTreeClickCallback from "./callbacks/fileTreeClickCallback";
 import { isMobile } from "@/syapi";
 import { getReadOnlyGSettings } from "@/manager/settingManager";
+import { isDocTreeShiftRangeSelectAvailable } from "@/utils/compatUtils";
 
 export default class FileTreePanelController extends PanelController {
     constructor(options: Omit<PanelControllerOptions, "panelType">) {
@@ -9,7 +10,9 @@ export default class FileTreePanelController extends PanelController {
     }
 
     protected supportsShiftRangeSelect(): boolean {
-        return !isMobile() && getReadOnlyGSettings().shiftMultiSelect === true;
+        return !isMobile()
+            && getReadOnlyGSettings().shiftMultiSelect === true
+            && isDocTreeShiftRangeSelectAvailable();
     }
 
     protected getRootSelectors(): string[] {

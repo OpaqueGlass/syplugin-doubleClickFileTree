@@ -15,7 +15,6 @@ export default class ShiftRangeSelectHandler {
         if (allItems.length === 0) {
             return false;
         }
-        debugger
         const anchor = this.resolveAnchor(allItems);
         if (anchor == null) {
             this.selectSingleAsAnchor(clicked, allItems);

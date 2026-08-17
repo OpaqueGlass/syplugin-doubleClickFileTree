@@ -12,7 +12,7 @@ export default class DialogClickBinder {
         for (const mutation of mutationsList) {
             if (mutation.type === "childList") {
                 for (const addedNode of mutation.addedNodes) {
-                    if (addedNode.nodeType === 1 && (addedNode as HTMLElement).dataset?.key === "dialog-movepathto") {
+                    if (addedNode.nodeType === 1 && DialogClickBinder.DIALOG_KEYS.includes((addedNode as HTMLElement).dataset?.key ?? "")) {
                         this.bindNode(addedNode as Element);
                     }
                 }
@@ -20,10 +20,19 @@ export default class DialogClickBinder {
         }
     });
 
+    /**
+     * 需要插件接管点击处理的对话框类型。
+     * 注意：Shift 范围选择仅在支持列表（isDialogShiftRangeSelectAvailable）中放行，
+     * 此处的绑定列表可大于支持列表（其余对话框仅处理单击/双击逻辑）。
+     */
+    private static readonly DIALOG_KEYS = ["dialog-movepathto"];
+
     bind() {
         this.unbind();
         this.observer.observe(document.body, { childList: true, subtree: false, attributes: false });
-        document.querySelectorAll("[data-key='dialog-movepathto']").forEach((node) => this.bindNode(node));
+        for (const key of DialogClickBinder.DIALOG_KEYS) {
+            document.querySelectorAll(`[data-key='${key}']`).forEach((node) => this.bindNode(node));
+        }
     }
 
     unbind() {

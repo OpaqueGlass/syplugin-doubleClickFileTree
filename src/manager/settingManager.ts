@@ -73,7 +73,6 @@ export function initSettingProperty() {
                     new ConfigProperty({ key: "treatAsFolder", type: "SWITCH" }),
                     new ConfigProperty({ key: "disableChangeIcon", type: "SWITCH" }),
                     new ConfigProperty({ key: "unfoldSubDocsWhileOpenParent", type: "SELECT", options: ["0", "1", "2"] }),
-                    new ConfigProperty({ key: "aboutAuthor", type: "TIPS" }),
                 ],
                 "panel": [
                     new ConfigProperty({ key: "sameToOutline", type: "SWITCH" }),
@@ -81,17 +80,18 @@ export function initSettingProperty() {
                     new ConfigProperty({ key: "applyToDialog", type: "SWITCH" }),
                     new ConfigProperty({ key: "enableMobile", type: "SWITCH" }),
                     new ConfigProperty({ key: "extendClickArea", type: "SWITCH" }),
+                ],
+                "function": [
                     new ConfigProperty({ key: "shiftMultiSelect", type: "SWITCH" }),
+                    new ConfigProperty({ key: "openToTop", type: "SWITCH" }),
+                    new ConfigProperty({ key: "lastModifyBlockHint", type: "SWITCH" }),
+                    new ConfigProperty({ key: "ignoreModifyHintIds", type: "TEXTAREA" }),
                 ],
                 "advanced": [
                     new ConfigProperty({ key: "dblclickDelay", type: "NUMBER", min: 50, max: 1200 }),
                     new ConfigProperty({ key: "prefetchSubDocsForDoubleClick", type: "SWITCH" }),
-
                 ],
                 "other": [
-                    new ConfigProperty({ key: "openToTop", type: "SWITCH" }),
-                    new ConfigProperty({ key: "lastModifyBlockHint", type: "SWITCH" }),
-                    new ConfigProperty({ key: "ignoreModifyHintIds", type: "TEXTAREA" }),
                     new ConfigProperty({ key: "debugMode", type: "SWITCH" }),
                     new ConfigProperty({ key: "aboutAuthor", type: "TIPS" }),
                 ]

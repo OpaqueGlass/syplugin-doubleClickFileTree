@@ -4,6 +4,7 @@ import TreeClickCallbackBase from "./treeClickCallbackBase";
 import { CLICK_SOURCE_TYPE } from "@/constants";
 import { getReadOnlyGSettings } from "@/manager/settingManager";
 import { isMobile } from "@/syapi";
+import { isDialogShiftRangeSelectAvailable } from "@/utils/compatUtils";
 
 export default class DialogTreeClickCallback extends TreeClickCallbackBase {
     protected getOpenActionType() {
@@ -15,7 +16,9 @@ export default class DialogTreeClickCallback extends TreeClickCallbackBase {
     }
 
     protected supportsShiftRangeSelect(): boolean {
-        return !isMobile() && getReadOnlyGSettings().shiftMultiSelect === true;
+        return !isMobile()
+            && getReadOnlyGSettings().shiftMultiSelect === true
+            && isDialogShiftRangeSelectAvailable();
     }
 
     protected getRangeSelectItems(): HTMLElement[] {

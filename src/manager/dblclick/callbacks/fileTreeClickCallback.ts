@@ -3,6 +3,7 @@ import { getReadOnlyGSettings } from "@/manager/settingManager";
 import { listDocsByPathT, isMobile } from "@/syapi";
 import { escapeHTML } from "@/utils/common";
 import { isValidStr } from "@/utils/commonCheck";
+import { isDocTreeShiftRangeSelectAvailable } from "@/utils/compatUtils";
 import type { ClickDispatchContext } from "../types";
 import TreeClickCallbackBase from "./treeClickCallbackBase";
 
@@ -24,9 +25,10 @@ export default class FileTreeClickCallback extends TreeClickCallbackBase {
     }
 
     protected supportsShiftRangeSelect(): boolean {
-        // return !isMobile() && getReadOnlyGSettings().shiftMultiSelect === true;
-        // v3.8.0 官方已经实现
-        return false;
+        // v3.8.0 起思源官方已原生支持文档树 Shift 多选，插件不再接管（即使设置项启用也不生效）
+        return !isMobile()
+            && getReadOnlyGSettings().shiftMultiSelect === true
+            && isDocTreeShiftRangeSelectAvailable();
     }
 
     protected getRangeSelectItems(): HTMLElement[] {
@@ -97,8 +99,10 @@ export default class FileTreeClickCallback extends TreeClickCallbackBase {
         return true;
     }
 
-    protected clearFocusedItem(sourceType: number): void {
-        document.querySelector(".sy__file .b3-list-item--focus, #sidebar [data-type='sidebar-file'] .b3-list-item--focus")?.classList.remove("b3-list-item--focus");
+    protected clearFocusedItem(_sourceType: number): void {
+        // 移除所在面板（文档树）下所有的 focus，而非仅第一个匹配项
+        document.querySelectorAll(".sy__file .b3-list-item--focus, #sidebar [data-type='sidebar-file'] .b3-list-item--focus")
+            .forEach((elem) => elem.classList.remove("b3-list-item--focus"));
     }
 
     private async prefetchTreeChildren(ctx: ClickDispatchContext): Promise<PrefetchedTreeChildren | null> {

@@ -7,6 +7,8 @@
   "setting_column_panel_name": "Scope",
   "setting_column_advanced_name": "Advanced",
   "setting_column_other_name": "Other",
+  "setting_column_function_name": "Function",
+
 
   "setting_dblclickShowSubDoc_name": "Enable Double-click Feature",
   "setting_dblclickShowSubDoc_desp": "If you do not use the double-click feature, disabling it can reduce single-click latency (equivalent to setting the double-click detection window to 0). However, regardless of whether this is enabled, the plugin will take over left-click events on document items in the document tree. Please note that this may be incompatible with other plugins or code snippets.",
@@ -21,7 +23,7 @@
   "setting_extendClickArea_name": "🧪 Extend Click Area",
   "setting_extendClickArea_desp": "When enabled, clicking `>` will be treated as clicking the document title, subject to the plugin's single/double-click management, rather than necessarily expanding sub-documents.",
   "setting_shiftMultiSelect_name": "Shift Range Multi-Select",
-  "setting_shiftMultiSelect_desp": "When enabled, Shift+Click in the document tree (and dialog document selection when enabled) selects all documents between the last clicked item and the current one; previously selected items outside this range will be deselected. Only affects the document tree and dialog document selection; the outline and tag panels are unaffected. Desktop only.",
+  "setting_shiftMultiSelect_desp": "When enabled, Shift+Click in the document tree (and dialog document selection when enabled) selects all documents between the last clicked item and the current one; previously selected items outside this range will be deselected. Only affects the document tree and dialog document selection; the outline and tag panels are unaffected. Desktop only. Note: SiYuan v3.8.0+ natively supports Shift multi-select in the document tree, so the plugin automatically disables it there (even if enabled, it will not take effect); dialog document selection is not affected by the version limit.",
   "setting_unfoldSubDocsWhileOpenParent_name": "Expand/Collapse Child Nodes When Opening Parent Document",
   "setting_unfoldSubDocsWhileOpenParent_desp": "(For outlines, the corresponding node will be expanded/collapsed after navigation.) Note that in the current implementation, nodes are expanded first and then the document is opened, but there may still be issues with focus not being placed on the document. If both \"Treat Documents as Folders\" and \"Swap Logic\" are enabled, this option will be forcibly disabled.",
   "setting_unfoldSubDocsWhileOpenParent_option_0": "Disabled",
@@ -33,7 +35,7 @@
   "setting_applyToDialog_desp": "When enabled, the settings in \"Click Behavior\" will also apply to dialogs such as move target selection and flashcard scope selection.",
   "setting_enableMobile_name": "🧪 Take Over Android Document Tree",
   "setting_enableMobile_desp": "When enabled, single/double-click behavior in the document tree on Android devices will also be managed by this plugin.",
-  "setting_openToTop_name": "❌ Do Not Scroll to Last Position When Opening Document",
+  "setting_openToTop_name": "🧪 Do Not Scroll to Last Position When Opening Document",
   "setting_openToTop_desp": "When enabled, opening a document will no longer scroll to the last edited position.",
   "setting_sameToTag_name": "Take Over Tag Panel",
   "setting_sameToTag_desp": "When enabled, the behaviors configured in \"Click Behavior\" will also apply to the tag panel.",
