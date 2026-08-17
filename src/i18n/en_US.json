@@ -20,6 +20,8 @@
   "setting_disableChangeIcon_desp": "When enabled, clicking the icon will be treated as clicking the document title, subject to the plugin's single/double-click management.",
   "setting_extendClickArea_name": "🧪 Extend Click Area",
   "setting_extendClickArea_desp": "When enabled, clicking `>` will be treated as clicking the document title, subject to the plugin's single/double-click management, rather than necessarily expanding sub-documents.",
+  "setting_shiftMultiSelect_name": "Shift Range Multi-Select",
+  "setting_shiftMultiSelect_desp": "When enabled, Shift+Click in the document tree (and dialog document selection when enabled) selects all documents between the last clicked item and the current one; previously selected items outside this range will be deselected. Only affects the document tree and dialog document selection; the outline and tag panels are unaffected. Desktop only.",
   "setting_unfoldSubDocsWhileOpenParent_name": "Expand/Collapse Child Nodes When Opening Parent Document",
   "setting_unfoldSubDocsWhileOpenParent_desp": "(For outlines, the corresponding node will be expanded/collapsed after navigation.) Note that in the current implementation, nodes are expanded first and then the document is opened, but there may still be issues with focus not being placed on the document. If both \"Treat Documents as Folders\" and \"Swap Logic\" are enabled, this option will be forcibly disabled.",
   "setting_unfoldSubDocsWhileOpenParent_option_0": "Disabled",

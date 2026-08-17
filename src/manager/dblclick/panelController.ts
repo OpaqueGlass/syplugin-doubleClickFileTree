@@ -63,11 +63,15 @@ export default abstract class PanelController {
 
     protected abstract resolveItemId(itemElement: HTMLElement): string | null;
 
+    protected supportsShiftRangeSelect(): boolean {
+        return false;
+    }
+
     protected shouldHandleEvent(event: MouseEvent, _itemElement: HTMLElement): boolean {
         if (event.button !== 0) {
             return false;
         }
-        if (event.shiftKey || event.altKey) {
+        if ((event.shiftKey && !this.supportsShiftRangeSelect()) || event.altKey) {
             return false;
         }
         return true;

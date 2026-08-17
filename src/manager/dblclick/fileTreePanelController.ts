@@ -1,10 +1,15 @@
 import PanelController, { PanelControllerOptions } from "./panelController";
 import FileTreeClickCallback from "./callbacks/fileTreeClickCallback";
 import { isMobile } from "@/syapi";
+import { getReadOnlyGSettings } from "@/manager/settingManager";
 
 export default class FileTreePanelController extends PanelController {
     constructor(options: Omit<PanelControllerOptions, "panelType">) {
         super({ ...options, panelType: "fileTree", callbacks: options.callbacks ?? new FileTreeClickCallback() });
+    }
+
+    protected supportsShiftRangeSelect(): boolean {
+        return !isMobile() && getReadOnlyGSettings().shiftMultiSelect === true;
     }
 
     protected getRootSelectors(): string[] {

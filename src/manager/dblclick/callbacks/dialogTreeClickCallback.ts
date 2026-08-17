@@ -2,6 +2,8 @@ import { debugPush } from "@/logger";
 import { ClickDispatchContext } from "../types";
 import TreeClickCallbackBase from "./treeClickCallbackBase";
 import { CLICK_SOURCE_TYPE } from "@/constants";
+import { getReadOnlyGSettings } from "@/manager/settingManager";
+import { isMobile } from "@/syapi";
 
 export default class DialogTreeClickCallback extends TreeClickCallbackBase {
     protected getOpenActionType() {
@@ -10,6 +12,20 @@ export default class DialogTreeClickCallback extends TreeClickCallbackBase {
 
     protected doNotSkipCtrlKey(): boolean {
         return false;
+    }
+
+    protected supportsShiftRangeSelect(): boolean {
+        return !isMobile() && getReadOnlyGSettings().shiftMultiSelect === true;
+    }
+
+    protected getRangeSelectItems(): HTMLElement[] {
+        const root = document.getElementById("foldTree");
+        if (!root) {
+            return [];
+        }
+        return Array.from(
+            root.querySelectorAll<HTMLElement>("li.b3-list-item")
+        ).filter((li) => !li.classList.contains("fn__none"));
     }
 
     protected clearFocusedItem(sourceType: CLICK_SOURCE_TYPE): void {

@@ -31,6 +31,7 @@ interface IPluginSettings {
     sameToTag?: boolean;
     debugMode?: boolean;
     treatAsFolder?: boolean,
+    shiftMultiSelect?: boolean,
 };
 let defaultSetting: IPluginSettings = {
     dblclickShowSubDoc: true,
@@ -49,6 +50,7 @@ let defaultSetting: IPluginSettings = {
     sameToTag: false,
     debugMode: false,
     treatAsFolder: false,
+    shiftMultiSelect: false,
 }
 
 
@@ -79,6 +81,7 @@ export function initSettingProperty() {
                     new ConfigProperty({ key: "applyToDialog", type: "SWITCH" }),
                     new ConfigProperty({ key: "enableMobile", type: "SWITCH" }),
                     new ConfigProperty({ key: "extendClickArea", type: "SWITCH" }),
+                    new ConfigProperty({ key: "shiftMultiSelect", type: "SWITCH" }),
                 ],
                 "advanced": [
                     new ConfigProperty({ key: "dblclickDelay", type: "NUMBER", min: 50, max: 1200 }),
@@ -130,7 +133,7 @@ export async function loadSettings() {
             loadResult = defaultSetting;
         }
     }
-    const currentVersion = 20260620;
+    const currentVersion = 20260816;
     let fromOldVersionFlag = false;
     if (!loadResult["@version"] || loadResult["@version"] < currentVersion) {
         // 旧版本

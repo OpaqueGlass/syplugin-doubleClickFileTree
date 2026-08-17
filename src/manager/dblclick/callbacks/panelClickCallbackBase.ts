@@ -3,13 +3,27 @@ import type { ClickDispatchContext } from "../types";
 import { debugPush } from "@/logger";
 import { CLICK_SOURCE_TYPE } from "@/constants";
 import { isMobile } from "@/syapi";
+import ShiftRangeSelectHandler from "../shiftRangeSelect";
 
 export default abstract class PanelClickCallbackBase {
     private recentClickedAt = 0;
     private recentClickedId: string | null = null;
     private recentClickTimer: number | null = null;
+    private readonly shiftSelectHandler = new ShiftRangeSelectHandler();
 
     handle(ctx: ClickDispatchContext): void {
+        // Shift 范围选择拦截（supportsShiftRangeSelect 默认 false，整体短路）
+        if (this.supportsShiftRangeSelect() && ctx.event.button === 0 && !ctx.event.altKey) {
+            if (ctx.event.shiftKey) {
+                if (this.isShiftRangeSelectTarget(ctx)) {
+                    this.handleShiftRangeSelect(ctx);
+                    return;
+                }
+            } else {
+                this.shiftSelectHandler.updateAnchor(ctx.itemElement);
+            }
+        }
+
         if (!this.shouldHandleContext(ctx)) {
             return;
         }
@@ -69,7 +83,19 @@ export default abstract class PanelClickCallbackBase {
         this.recentClickTimer = null;
         this.recentClickedAt = 0;
         this.recentClickedId = null;
+        this.shiftSelectHandler.dispose();
         this.onDispose();
+    }
+
+    private handleShiftRangeSelect(ctx: ClickDispatchContext): void {
+        if (this.recentClickTimer != null) {
+            window.clearTimeout(this.recentClickTimer);
+            this.recentClickTimer = null;
+        }
+        this.recentClickedAt = 0;
+        this.recentClickedId = null;
+        this.stopEvent(ctx.event);
+        this.shiftSelectHandler.handleRangeSelect(ctx.itemElement, this.getRangeSelectItems());
     }
 
     protected getRecentClickedId() {
@@ -101,6 +127,18 @@ export default abstract class PanelClickCallbackBase {
     }
 
     protected shouldIgnoreSyntheticEvent(_ctx: ClickDispatchContext): boolean {
+        return true;
+    }
+
+    protected supportsShiftRangeSelect(): boolean {
+        return false;
+    }
+
+    protected getRangeSelectItems(): HTMLElement[] {
+        return [];
+    }
+
+    protected isShiftRangeSelectTarget(_ctx: ClickDispatchContext): boolean {
         return true;
     }
 

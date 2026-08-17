@@ -10,3 +10,5 @@ build
 tmp
 refer/
 scripts/devInfo.json
+.workbuddy/
+pnpm-workspace.yaml

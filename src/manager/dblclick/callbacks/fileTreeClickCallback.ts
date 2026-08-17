@@ -1,6 +1,6 @@
 import { debugPush, errorPush } from "@/logger";
 import { getReadOnlyGSettings } from "@/manager/settingManager";
-import { listDocsByPathT } from "@/syapi";
+import { listDocsByPathT, isMobile } from "@/syapi";
 import { escapeHTML } from "@/utils/common";
 import { isValidStr } from "@/utils/commonCheck";
 import type { ClickDispatchContext } from "../types";
@@ -21,6 +21,23 @@ export default class FileTreeClickCallback extends TreeClickCallbackBase {
 
     protected doNotSkipCtrlKey(): boolean {
         return false;
+    }
+
+    protected supportsShiftRangeSelect(): boolean {
+        // return !isMobile() && getReadOnlyGSettings().shiftMultiSelect === true;
+        // v3.8.0 官方已经实现
+        return false;
+    }
+
+    protected getRangeSelectItems(): HTMLElement[] {
+        const root = document.querySelector(".sy__file")
+            ?? document.querySelector("#sidebar [data-type='sidebar-file']");
+        if (!root) {
+            return [];
+        }
+        return Array.from(
+            root.querySelectorAll<HTMLElement>("li[data-type='navigation-file'], li[data-type='navigation-root']")
+        ).filter((li) => !li.classList.contains("fn__none"));
     }
 
     protected afterHandleSingleQueued(ctx: ClickDispatchContext): void {

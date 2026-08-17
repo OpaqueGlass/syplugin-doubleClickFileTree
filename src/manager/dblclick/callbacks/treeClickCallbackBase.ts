@@ -287,6 +287,21 @@ export default abstract class TreeClickCallbackBase extends PanelClickCallbackBa
         return !!elem && (elem.classList.contains("b3-list-item__toggle") || ["svg", "use"].includes(elem.tagName));
     }
 
+    protected isShiftRangeSelectTarget(ctx: ClickDispatchContext): boolean {
+        const event = ctx.event;
+        const commonMenu = document.getElementById("commonMenu");
+        if (commonMenu && !commonMenu.classList.contains("fn__none")) {
+            return false;
+        }
+        if (this.isIconTarget(event.target) || this.isActionTarget(event.target)) {
+            return false;
+        }
+        if (this.isToggleTarget(event.target)) {
+            return false;
+        }
+        return true;
+    }
+
     protected isMoreButton(sourceElem: Element): boolean {
         return ["more-file", "more-root", "new"].includes(sourceElem.getAttribute("data-type") ?? "");
     }
