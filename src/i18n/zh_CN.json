@@ -22,7 +22,7 @@
     "setting_extendClickArea_name": "🧪扩大响应区域",
     "setting_extendClickArea_desp": "启用本功能后，点击`>`将视为点击文档标题，接受插件单击/双击管理，而不一定是展开子文档",
     "setting_shiftMultiSelect_name": "Shift范围多选",
-    "setting_shiftMultiSelect_desp": "启用后，在文档树（及启用时的对话框内文档选择）中按住Shift点击可选中两次点击之间的全部文档，不在此范围内的已选文档将被取消选中。仅对文档树与对话框内文档选择生效，大纲/标签面板不受影响；仅桌面端有效。注意：思源 v3.8.0 及以上版本文档树已原生支持 Shift 多选，插件在文档树中将自动禁用（即使启用也不生效），对话框内文档选择不受版本限制",
+    "setting_shiftMultiSelect_desp": "启用后，在文档树（及启用时的对话框内文档选择）中按住Shift点击可选中两次点击之间的全部文档，不在此范围内的已选文档将被取消选中。仅对文档树与对话框内文档选择生效，大纲/标签面板不受影响；仅桌面端有效。注意：思源 v3.3.4 及以上版本文档树已原生支持 Shift 多选，插件在文档树中将自动禁用（即使启用也不生效），对话框内文档选择不受版本限制",
     "setting_unfoldSubDocsWhileOpenParent_name": "打开父文档时展开/收起子节点",
     "setting_unfoldSubDocsWhileOpenParent_desp": "（对于大纲，将在跳转后展开/收起所在节点）请注意，在当前实现中，将先展开、而后打开文档，但仍然存在无法将焦点对在文档上的问题。若同时启用“将文档视为文件夹”与“交换逻辑”，此项将被强制禁用。",
     "setting_unfoldSubDocsWhileOpenParent_option_0": "禁用",

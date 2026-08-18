@@ -25,7 +25,7 @@ export default class FileTreeClickCallback extends TreeClickCallbackBase {
     }
 
     protected supportsShiftRangeSelect(): boolean {
-        // v3.8.0 起思源官方已原生支持文档树 Shift 多选，插件不再接管（即使设置项启用也不生效）
+        // v3.3.4 起思源官方已原生支持文档树 Shift 多选，插件不再接管（即使设置项启用也不生效）
         return !isMobile()
             && getReadOnlyGSettings().shiftMultiSelect === true
             && isDocTreeShiftRangeSelectAvailable();
